@@ -12,7 +12,7 @@
 }
 
 .square{
-    border: 1px solid #999;
+    border: 1px solid #D3D3D3;
     background: #fff;
     height: 34px;
     width: 34px;
@@ -42,7 +42,23 @@
 }
 
 .chess{
+    background: #00f;
+    height: 34px;
+    width: 34px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.whiteChess{
     background: #D3D3D3;
+    height: 34px;
+    width: 34px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.blackChess{
+    background: #222;
     height: 34px;
     width: 34px;
     border-radius: 50%;

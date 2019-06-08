@@ -3,12 +3,12 @@
     margin-top:50px;
 }
 
-.squares-container{
+#squares-container{
     margin-left:50px;
     margin-top:50px;
     background-color:#fff;
     display:grid;
-    grid-template-columns: min-content min-content min-content min-content min-content min-content min-content min-content min-content;
+    grid-template-columns: min-content min-content min-content min-content min-content min-content min-content min-content;
 }
 
 .square{

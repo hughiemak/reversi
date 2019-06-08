@@ -1,14 +1,20 @@
 .board-container{
     margin-left:50px;
     margin-top:50px;
+    display:block;
+    float:left;
+    
 }
 
 #squares-container{
+    padding:20px;
+    padding-right: 0px;
     margin-left:50px;
-    margin-top:50px;
+    margin-top:0px;
     background-color:#fff;
-    display:grid;
     grid-template-columns: min-content min-content min-content min-content min-content min-content min-content min-content;
+    width:300px;
+    overflow: auto;
 }
 
 .square{
@@ -38,7 +44,7 @@
     /* display: inline-block; */
     margin-right: -1px;
     margin-top: -1px;
-    float: left;
+    /* float: left; */
 }
 
 .chess{
@@ -79,3 +85,30 @@
     width: 279px; /* squre-width x 8 + 7 */
 }
 
+#info-container {
+    background: #fff;
+    
+    float:left;
+    display:inline-block;
+    padding:0px;
+    overflow: auto;
+}
+
+#game-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 50px;
+    
+}
+
+.whiteScore{
+    color: #D3D3D3;
+    font-size:30px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.blackScore{
+    color: #222;
+    font-size: 30px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

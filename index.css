@@ -87,7 +87,7 @@
 
 #info-container {
     background: #fff;
-    
+    width: 100px;
     float:left;
     display:inline-block;
     padding:0px;
@@ -98,7 +98,8 @@
     display: flex;
     justify-content: flex-start;
     margin-top: 50px;
-    
+    overflow-x: scroll;
+    width:500px;
 }
 
 .whiteScore{

@@ -89,9 +89,12 @@
     background: #fff;
     width: 100px;
     float:left;
-    display:inline-block;
+    display:inline-flex;
+    flex-direction: column;
     padding:0px;
     overflow: auto;
+    justify-content: center;
+    /* padding-top: 20px; */
 }
 
 #game-container {
@@ -106,12 +109,16 @@
     color: #D3D3D3;
     font-size:30px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 50px;
+    text-align: center;
 }
 
 .blackScore{
     color: #222;
     font-size: 30px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 50px;
+    text-align: center;
 }
 
 #version{
@@ -120,4 +127,33 @@
     /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
     float:right;
     margin-right: 30px;
+}
+
+.indicator-container{
+    height: 50px;
+    width: 50px;
+    /* background-color: #bbb; */
+    /* border-radius: 50%; */
+    /* display: table-cell;
+    vertical-align: middle; */
+    display: flex;
+  justify-content: center;
+  align-items: center; 
+}
+
+.white-indicator{
+    height: 34px;
+    width: 34px;
+    background-color: #D3D3D3;
+    border-radius: 50%;
+    /* margin:  auto auto auto auto; */
+    
+}
+
+.black-indicator{
+    height: 34px;
+    width: 34px;
+    background-color: #222;
+    border-radius: 50%;
+    /* margin: auto auto auto auto; */
 }

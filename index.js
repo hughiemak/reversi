@@ -84,10 +84,11 @@ function displayNoOfWhite() {
     var element = $(".whiteScore")
 
     var text;
+
+    text = noOfWhite
     if (gameTurn == 0){
-        text = "*"  + noOfWhite
-    }else{
-        text = noOfWhite
+        $(".indicator-container").empty()
+        $(".indicator-container").append('<div class="white-indicator"></div>')
     }
 
     element.html(text);
@@ -96,10 +97,15 @@ function displayNoOfWhite() {
 function displayNoOfBlack() {
     var element = $(".blackScore")
     var text;
-    if (gameTurn == 1){
-        text = "*"  + noOfBlack
-    }else{
+    // if (gameTurn == 1){
+    //     text = "*"  + noOfBlack
+    // }else{
         text = noOfBlack
+    // }
+
+    if (gameTurn == 1){
+        $(".indicator-container").empty()
+        $(".indicator-container").append('<div class="black-indicator"></div>')
     }
 
     element.html(text);

@@ -26,6 +26,9 @@
     margin-right: -1px;
     margin-top: -1px;
     float: left;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
 }
 
 .board {
@@ -51,6 +54,22 @@
     background: #00f;
     height: 34px;
     width: 34px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.white-hint{
+    background: #D3D3D3;
+    height: 5px;
+    width: 5px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.black-hint{
+    background: #222;
+    height: 5px;
+    width: 5px;
     border-radius: 50%;
     display: inline-block;
 }
@@ -137,8 +156,8 @@
     /* display: table-cell;
     vertical-align: middle; */
     display: flex;
-  justify-content: center;
-  align-items: center; 
+    justify-content: center;
+    align-items: center; 
 }
 
 .white-indicator{

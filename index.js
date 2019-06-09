@@ -16,6 +16,17 @@ var gameTurn = 0;
 var noOfWhite;
 var noOfBlack;
 
+var directions = [
+    [0, 1],
+    [1, 1],
+    [1, 0],
+    [1, -1],
+    [0, -1],
+    [-1, -1],
+    [-1, 0],
+    [-1, 1]
+]
+
 function onload() {
 
     var boardContainer = $(".board-container")
@@ -225,22 +236,67 @@ function getMaxColumnIndex() {
     return count - 1
 }
 
+function canEmptySquaresPlaceChess(){
+    $(".white-hint").remove();
+    $(".black-hint").remove();
+    var arrayOfEmptyPosition = [];
+    gameState.forEach(function(element, index){
+        let y = index
+        element.forEach(function(element, index){
+            let x = index
+            if (element == null) {
+                arrayOfEmptyPosition.push({x:x, y:y})
+            }
+        });
+    });
+
+    
+
+    var arrayOfPossibleMovement = [];
+
+    arrayOfEmptyPosition.forEach(position => {
+        let x = position.x;
+        let y = position.y;
+        var hasValidMove = false;
+        directions.forEach(direction => {
+            
+            let dx = direction[0]
+            let dy = direction[1]
+            let tail = getNearestTailWithCustomDirection(x, y, dx, dy)
+            if (tail != null){
+                // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROCESS MOVE TAIL x: " + tail.x + ", y: " + tail.y)
+                hasValidMove = true
+            }
+        });
+        if (hasValidMove){
+            arrayOfPossibleMovement.push(position)
+            if (gameTurn == 0){
+                getSquare(x, y).append('<div class="white-hint"></div>')
+
+            }else{
+                getSquare(x, y).append('<div class="black-hint"></div>')
+
+            }
+        }
+    });
+
+    
+
+    if(arrayOfPossibleMovement.isEmpty){
+        return false
+    }else{
+        return true
+    }
+
+}
+
 function processMove(x, y) {
 
     var head = { x: x, y: y }
 
     var validMove = false;
 
-    var directions = [
-        [0, 1],
-        [1, 1],
-        [1, 0],
-        [1, -1],
-        [0, -1],
-        [-1, -1],
-        [-1, 0],
-        [-1, 1]
-    ]
+    
 
     directions.forEach(element => {
         let dx = element[0]
@@ -257,6 +313,8 @@ function processMove(x, y) {
         
         placeChessOn(x, y)
         switchGameTurn()
+
+        canEmptySquaresPlaceChess()
     }
 
     // let northTail = getNearestNorthTail(x, y);

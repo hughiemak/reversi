@@ -237,6 +237,7 @@ function processMove(x, y) {
         let dy = element[1]
         let tail = getNearestTailWithCustomDirection(x, y, dx, dy)
         if (tail != null){
+            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROCESS MOVE TAIL x: " + tail.x + ", y: " + tail.y)
             flipEnemiesInCustomDirection(head, tail)
             validMove = true
         }
@@ -281,6 +282,7 @@ function processMove(x, y) {
 }
 
 function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
+    console.log("x: " + x + " y: " + y + " xDir: " + xDir + " yDir: " + yDir)
     var tail = null
     var xSquareUntilWall;
     var ySquareUntilWall;
@@ -339,7 +341,12 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
             console.log("shouldIncrementY: " + shouldIncrementY)
 
             for (i = x + unitXDir * 2, j = y + unitYDir * 2; squareUntilWall >= 0; shouldKeepXUnchanged ? (i = i) : (shouldIncrementX ? i++ : i--), shouldKeepYUnchanged ? (j = j) : (shouldIncrementY ? j++ : j-- , squareUntilWall--)) {
-                var squareState = getSquareState(i, j);
+                var squareState;
+                if (i > getMaxRowIndex() || i < 0|| j > getMaxColumnIndex() || j < 0){
+                    squareState = null
+                }else{
+                    squareState = getSquareState(i, j)
+                }
                 console.log("i: " + i + ", j: " + j + ", squareState: " + squareState)
                 if (squareState == gameTurn) {
                     //ally

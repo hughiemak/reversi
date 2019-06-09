@@ -14,7 +14,7 @@
     background-color:#fff;
     grid-template-columns: min-content min-content min-content min-content min-content min-content min-content min-content;
     width:300px;
-    overflow: auto;
+    /* overflow: auto; */
 }
 
 .square{
@@ -98,7 +98,7 @@
     display: flex;
     justify-content: flex-start;
     margin-top: 50px;
-    overflow-x: scroll;
+    /* overflow-x: scroll; */
     width:500px;
 }
 

@@ -32,22 +32,24 @@ function onload() {
 
             square.click(function (event) {
                 console.log("DEBUG")
+                console.log("gameTurn: " + gameTurn)
                 var element = $("#" + event.currentTarget.id)
                 console.log("x: " + element.data("position").x + ", y: " + element.data("position").y)
                 var x = element.data("position").x
                 var y = element.data("position").y
 
-                console.log("getNearestNorthTail(x, y): " + getNearestNorthTail(x, y))
+                // console.log("getNearestSouthTail(x, y): " + getNearestTailWithCustomDirection(x, y, 0, -1))
 
-                if (getNearestNorthTail(x, y) != null) {
-                    // flipSouthWestEnemies({ x: x, y: y }, getNearestSouthWestTail(x, y))
-                    flipEnemiesInCustomDirection({ x: x, y: y }, getNearestNorthTail(x, y))
-                }
+                processMove(x, y)
+                // if (getNearestTailWithCustomDirection(x, y, 0, -1) != null) {
+                //     // flipSouthWestEnemies({ x: x, y: y }, getNearestSouthWestTail(x, y))
+                //     flipEnemiesInCustomDirection({ x: x, y: y }, getNearestTailWithCustomDirection(x, y, 0, -1))
+                // }
 
                 //if chess has not been placed
                 // if (canPlaceChess(x,y)){
-                placeChessOn(x, y)
-                switchGameTurn()
+                // placeChessOn(x, y)
+                // switchGameTurn()
                 // }
 
             })
@@ -80,13 +82,27 @@ function displayChessScores() {
 
 function displayNoOfWhite() {
     var element = $(".whiteScore")
-    element.html(noOfWhite);
 
+    var text;
+    if (gameTurn == 0){
+        text = "*"  + noOfWhite
+    }else{
+        text = noOfWhite
+    }
+
+    element.html(text);
 }
 
 function displayNoOfBlack() {
     var element = $(".blackScore")
-    element.html(noOfBlack);
+    var text;
+    if (gameTurn == 1){
+        text = "*"  + noOfBlack
+    }else{
+        text = noOfBlack
+    }
+
+    element.html(text);
 }
 
 function switchGameTurn() {
@@ -95,15 +111,21 @@ function switchGameTurn() {
     } else {
         gameTurn = 0
     }
+    updateChessCount()
 }
 
 function initGameState() {
     //33, 44 black
-    placeBlackChessOn(3, 3)
-    placeBlackChessOn(4, 4)
+    placeChessOn(3, 4)
+    switchGameTurn()
+    placeChessOn(3, 3)
+    switchGameTurn()
     //34, 43 white
-    placeWhiteChessOn(3, 4)
-    placeWhiteChessOn(4, 3)
+    placeChessOn(4, 3)
+    switchGameTurn()
+    placeChessOn(4, 4)
+    switchGameTurn()
+    
 }
 
 function renderSqaure(x, y) {
@@ -132,7 +154,8 @@ function placeWhiteChessOn(x, y) {
     setSqaureStateWhite(x, y)
     console.log("gameState: " + gameState);
     // element.unbind();
-    updateChessCount()
+    // switchGameTurn()
+    // updateChessCount()
 }
 
 function placeBlackChessOn(x, y) {
@@ -143,7 +166,8 @@ function placeBlackChessOn(x, y) {
     setSqaureStateBlack(x, y)
     console.log("gameState: " + gameState);
     // element.unbind();
-    updateChessCount()
+    // switchGameTurn()
+    // updateChessCount()
 }
 
 function updateChessCount() {
@@ -191,50 +215,104 @@ function getMaxColumnIndex() {
     return count - 1
 }
 
-function processMove(x, y){
+function processMove(x, y) {
 
-    var head = {x:x, y:y}
+    var head = { x: x, y: y }
 
     var validMove = false;
 
-    let northTail = getNearestNorthTail(x, y);
-    if (northTail != null){
-        flipEnemiesInCustomDirection(head, northTail)
-        validMove = true;
+    var directions = [
+        [0, 1],
+        [1, 1],
+        [1, 0],
+        [1, -1],
+        [0, -1],
+        [-1, -1],
+        [-1, 0],
+        [-1, 1]
+    ]
+
+    directions.forEach(element => {
+        let dx = element[0]
+        let dy = element[1]
+        let tail = getNearestTailWithCustomDirection(x, y, dx, dy)
+        if (tail != null){
+            flipEnemiesInCustomDirection(head, tail)
+            validMove = true
+        }
+    });
+
+    if (validMove) {
+        
+        placeChessOn(x, y)
+        switchGameTurn()
     }
 
-    let northEastTail = getNearestNorthEastTail(x, y)
-    if (northEastTail != null){
-        flipEnemiesInCustomDirection(head, northEastTail);
-        validMove = true;
-    }
+    // let northTail = getNearestNorthTail(x, y);
+    // if (northTail != null){
+    //     flipEnemiesInCustomDirection(head, northTail)
+    //     validMove = true;
+    // }
 
+    // let northEastTail = getNearestNorthEastTail(x, y)
+    // if (northEastTail != null){
+    //     flipEnemiesInCustomDirection(head, northEastTail);
+    //     validMove = true;
+    // }
+
+    // let eastTail = getNearestEastTail(x, y)
+    // if (eastTail != null){
+    //     flipEnemiesInCustomDirection(head, eastTail);
+    //     validMove = true;
+    // }
+
+    // let southEastTail = getNearestSouthEastTail(x, y)
+    // if (southEastTail != null){
+    //     flipEnemiesInCustomDirection(head, southEastTail);
+    //     validMove = true;
+    // }
+
+    // let southEastTail = getNearestSouthEastTail(x, y)
+    // if (southEastTail != null){
+    //     flipEnemiesInCustomDirection(head, southEastTail);
+    //     validMove = true;
+    // }
 
 }
 
-function getNearestTailWithCustomDirection(x, y, xDir, yDir){
+function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
     var tail = null
     var xSquareUntilWall;
     var ySquareUntilWall;
 
-    var unitXDir = xDir/Math.abs(xDir);
-    var unitYDir = yDir/Math.abs(yDir);
+    var unitXDir = xDir///Math.abs(xDir);
+    var unitYDir = yDir///Math.abs(yDir);
 
     if (xDir < 0) {
         xSquareUntilWall = x
-    }else if (xDir > 0){
+    } else if (xDir > 0) {
         xSquareUntilWall = getMaxRowIndex() - x
     }
 
     if (yDir < 0) {
         ySquareUntilWall = y
-    }else if (yDir > 0){
+    } else if (yDir > 0) {
         ySquareUntilWall = getMaxColumnIndex() - y
     }
-
+    
     console.log("xSquareUntilWall: " + xSquareUntilWall + ", ySquareUntilWall: " + ySquareUntilWall)
 
-    let squareUntilWall = Math.min(xSquareUntilWall, ySquareUntilWall);
+
+    var squareUntilWall;
+
+    if (unitXDir == 0) {
+        squareUntilWall = ySquareUntilWall
+    } else if (unitYDir == 0) {
+        squareUntilWall = xSquareUntilWall
+    } else {
+        squareUntilWall = Math.min(xSquareUntilWall, ySquareUntilWall);
+    }
+    
 
     console.log("squareUntilWall: " + squareUntilWall)
 
@@ -242,6 +320,7 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir){
         console.log("squareUntilWall == 0")
         tail = null
     } else {
+        console.log("x + unitXDir: " + x + unitXDir + ", y + unitYDir: " + y + unitYDir)
         var nextSquareState = getSquareState(x + unitXDir, y + unitYDir);
 
         if (nextSquareState == null || nextSquareState == gameTurn) {
@@ -250,18 +329,21 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir){
         } else {
             var i, j;
 
+            let shouldKeepXUnchanged = unitXDir == 0;
+            let shouldKeepYUnchanged = unitYDir == 0;
+
             let shouldIncrementX = shouldIncrement(unitXDir)
             let shouldIncrementY = shouldIncrement(unitYDir)
 
             console.log("shouldIncrementX: " + shouldIncrementX)
             console.log("shouldIncrementY: " + shouldIncrementY)
 
-            for(i = x + unitXDir * 2, j = y + unitYDir * 2; squareUntilWall >= 0 ; shouldIncrementX? i++ : i--, shouldIncrementY? j++:j--, squareUntilWall--){
+            for (i = x + unitXDir * 2, j = y + unitYDir * 2; squareUntilWall >= 0; shouldKeepXUnchanged ? (i = i) : (shouldIncrementX ? i++ : i--), shouldKeepYUnchanged ? (j = j) : (shouldIncrementY ? j++ : j-- , squareUntilWall--)) {
                 var squareState = getSquareState(i, j);
-                console.log("i: "  + i + ", j: "  + j +", squareState: " + squareState)
+                console.log("i: " + i + ", j: " + j + ", squareState: " + squareState)
                 if (squareState == gameTurn) {
                     //ally
-                    console.log("Found Ally!")
+                    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Found Ally!")
                     tail = { x: i, y: j }
                     squareUntilWall = -1
                 } else if (squareState == null) {
@@ -284,27 +366,31 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir){
 
 // }
 
-function shouldIncrement(unitDir){
-    if(unitDir > 0){
+function shouldIncrement(unitDir) {
+    if (unitDir > 0) {
         return true
-    }else if (unitDir < 0){
+    } else if (unitDir < 0) {
+        return false
+    }else{
         return false
     }
 }
 
-function operateFlipIndex(unitDir, index){
-    if(unitDir > 0){
+function operateFlipIndex(unitDir, index) {
+    if (unitDir > 0) {
         increment(index)
-    }else if (unitDir < 0){
+    } else if (unitDir < 0) {
         decrement(index)
+    }else{
+        return false
     }
 }
 
-function decrement(k){
+function decrement(k) {
     k--
 }
 
-function increment(k){
+function increment(k) {
     k++
 }
 
@@ -324,7 +410,7 @@ function getNearestNorthWestTail(x, y) {
     return getNearestTailWithCustomDirection(x, y, -1, 1)
 }
 
-function flipEnemiesInCustomDirection(head, tail){
+function flipEnemiesInCustomDirection(head, tail) {
     let headY = head.y;
     let tailY = tail.y;
     let headX = head.x;
@@ -338,10 +424,10 @@ function flipEnemiesInCustomDirection(head, tail){
 
     var i, j;
 
-    for(shouldKeepXUnchanged ? (i = headX):(shouldIncrementX ? (i = headX +1) : (i = headX - 1)), shouldKeepYUnchanged ? (j = headY) : (shouldIncrementY ? (j = headY + 1) : (j = headY - 1));
-        shouldKeepXUnchanged ? (i == tailX):(shouldIncrementX ? (i <= tailX) : (i >= tailX)), shouldKeepYUnchanged ? (j == tailY):(shouldIncrementY ? (j <= tailY) : (j >= tailY));
-        shouldKeepXUnchanged ? (i = i): (shouldIncrementX ? (i++) : (i--)), shouldKeepYUnchanged ? (j = j):(shouldIncrementY ? (j++) : (j--))){
-            placeChessOn(i, j)
+    for (shouldKeepXUnchanged ? (i = headX) : (shouldIncrementX ? (i = headX + 1) : (i = headX - 1)), shouldKeepYUnchanged ? (j = headY) : (shouldIncrementY ? (j = headY + 1) : (j = headY - 1));
+        (shouldKeepXUnchanged ? (i == tailX) : (shouldIncrementX ? (i <= tailX) : (i >= tailX))) && (shouldKeepYUnchanged ? (j == tailY) : (shouldIncrementY ? (j <= tailY) : (j >= tailY)));
+        shouldKeepXUnchanged ? (i = i) : (shouldIncrementX ? (i++) : (i--)), shouldKeepYUnchanged ? (j = j) : (shouldIncrementY ? (j++) : (j--))) {
+        placeChessOn(i, j)
     }
 
 }
@@ -354,7 +440,7 @@ function flipSouthWestEnemies(head, tail) {
 
     var i, j;
 
-    for (i = headX - 1, j = headY - 1; i >= tailX, j >= tailY; i--, j--) {
+    for (i = headX - 1, j = headY - 1; i >= tailX, j >= tailY; i-- , j--) {
         placeChessOn(i, j)
     }
 }
@@ -699,3 +785,116 @@ window.onload = onload();
 //         <div class="square"></div>
 //         <div class="square"></div>
 //         <div class="square"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* <div class="board-container">
+        <div class="board">
+            <!-- a row 1-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+
+            <!-- a row 2-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+
+            <!-- a row 3-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+
+            <!-- a row 4-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+        </div>
+        <!-- a row 5-->
+        <div class="river-row"></div>
+
+        <div class="board">
+            <!-- a row 6-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+
+            <!-- a row 7-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+
+            <!-- a row 8-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+
+            <!-- a row 9-->
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+            <div class="grid"></div>
+
+        </div>
+    </div> */}

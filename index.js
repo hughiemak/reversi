@@ -40,7 +40,11 @@ function onload() {
 
                 // console.log("getNearestSouthTail(x, y): " + getNearestTailWithCustomDirection(x, y, 0, -1))
 
-                processMove(x, y)
+                if (getSquareState(x, y) == null){
+                    processMove(x, y)
+
+                }
+
                 // if (getNearestTailWithCustomDirection(x, y, 0, -1) != null) {
                 //     // flipSouthWestEnemies({ x: x, y: y }, getNearestSouthWestTail(x, y))
                 //     flipEnemiesInCustomDirection({ x: x, y: y }, getNearestTailWithCustomDirection(x, y, 0, -1))

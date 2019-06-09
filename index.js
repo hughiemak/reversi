@@ -72,6 +72,8 @@ function onload() {
     }
 
     initGameState()
+
+    canEmptySquaresPlaceChess()
 }
 
 function getSquareState(x, y) {
@@ -280,9 +282,11 @@ function canEmptySquaresPlaceChess(){
         }
     });
 
-    
+    arrayOfPossibleMovement.forEach(element => {
+        console.log("element.x: " + element.x + ", element.y: " + element.y)
+    });
 
-    if(arrayOfPossibleMovement.isEmpty){
+    if(arrayOfPossibleMovement.length == 0){
         return false
     }else{
         return true
@@ -314,7 +318,23 @@ function processMove(x, y) {
         placeChessOn(x, y)
         switchGameTurn()
 
-        canEmptySquaresPlaceChess()
+        let hasPlacement = canEmptySquaresPlaceChess()
+
+        console.log("hasPlacement: " + hasPlacement)
+
+        if (!hasPlacement) {
+            switchGameTurn()
+            let opponentHasPlacement = canEmptySquaresPlaceChess()
+            if (opponentHasPlacement){
+                //continue
+                console.log("continue")
+            }else{
+                //game end
+                console.log("game end")
+            }
+        }else{
+
+        }
     }
 
     // let northTail = getNearestNorthTail(x, y);

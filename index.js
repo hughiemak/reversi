@@ -1,5 +1,17 @@
 
-var socket = io('http://192.168.48.37:3000/');
+// var socket = io('http://192.168.48.37:3000/');
+
+var socket = io.connect( 'http://192.168.48.37:3000/', {
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax : 5000,
+    reconnectionAttempts: 99999
+} );
+
+
+var offlineMode = true;
+
+var chessColor = 0;
 
 var gameState =
     [
@@ -33,20 +45,42 @@ function connectToSocket() {
 
 }
 
+function emitMove(x, y) {
+    socket.emit("emit move", {x:x, y:y})
+}
+
 function emit() {
     
         socket.emit('emit from client', null);        
 }
 
 function initServerEmitHandler(){
-    socket.on('emit from server', function(msg){
-        console.log("emit from server: " + msg)
-    })
+
+    socket.on( 'connect', function () {
+        console.log( 'connected to server' );
+        $("#connection-status").text("connected to server")
+    } );
+    
+    socket.on( 'disconnect', function () {
+        console.log( 'disconnected to server' );
+        $("#connection-status").text("disconnected to server")
+
+    } );
+
+    socket.on('reconnect', function() {
+        console.log( 'reconnected to server' );
+        $("#connection-status").text("reconnected to server")
+
+    } ); 
+
+    // socket.on('emit from server', function(msg){
+    //     console.log("emit from server: " + msg)
+    // })
+
+    
 }
 
 function onload() {
-
-    // emit()
 
     initServerEmitHandler()
 
@@ -95,6 +129,25 @@ function onload() {
     initGameState()
 
     canEmptySquaresPlaceChess()
+
+    addRoomButton()
+}
+
+function addRoomButton(){
+    var element = $('#room-button-container-3')
+    element.append('<button id="enter-room">Enter Room</button>')
+
+    var button = $('#enter-room')
+    button.click(function(event){
+        // console.log("button clicked")
+        emitFromButton1();
+    });
+}
+
+function emitFromButton1(){
+    socket.emit("button 1", "button 1 clicked", function(msg){
+        alert(msg);
+    })
 }
 
 function getSquareState(x, y) {
@@ -316,6 +369,8 @@ function canEmptySquaresPlaceChess() {
 }
 
 function processMove(x, y) {
+
+    emitMove(x, y)
 
     var head = { x: x, y: y }
 

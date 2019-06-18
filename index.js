@@ -1,4 +1,6 @@
 
+var socket = io('http://192.168.48.37:3000/');
+
 var gameState =
     [
         [null, null, null, null, null, null, null, null],
@@ -27,7 +29,26 @@ var directions = [
     [-1, 1]
 ]
 
+function connectToSocket() {
+
+}
+
+function emit() {
+    
+        socket.emit('emit from client', null);        
+}
+
+function initServerEmitHandler(){
+    socket.on('emit from server', function(msg){
+        console.log("emit from server: " + msg)
+    })
+}
+
 function onload() {
+
+    // emit()
+
+    initServerEmitHandler()
 
     var boardContainer = $(".board-container")
     boardContainer.hide();
@@ -51,7 +72,7 @@ function onload() {
 
                 // console.log("getNearestSouthTail(x, y): " + getNearestTailWithCustomDirection(x, y, 0, -1))
 
-                if (getSquareState(x, y) == null){
+                if (getSquareState(x, y) == null) {
                     processMove(x, y)
 
                 }
@@ -103,7 +124,7 @@ function displayNoOfWhite() {
     var text;
 
     text = noOfWhite
-    if (gameTurn == 0){
+    if (gameTurn == 0) {
         $(".indicator-container").empty()
         $(".indicator-container").append('<div class="white-indicator"></div>')
     }
@@ -117,10 +138,10 @@ function displayNoOfBlack() {
     // if (gameTurn == 1){
     //     text = "*"  + noOfBlack
     // }else{
-        text = noOfBlack
+    text = noOfBlack
     // }
 
-    if (gameTurn == 1){
+    if (gameTurn == 1) {
         $(".indicator-container").empty()
         $(".indicator-container").append('<div class="black-indicator"></div>')
     }
@@ -148,7 +169,7 @@ function initGameState() {
     switchGameTurn()
     placeChessOn(4, 4)
     switchGameTurn()
-    
+
 }
 
 function renderSqaure(x, y) {
@@ -238,21 +259,21 @@ function getMaxColumnIndex() {
     return count - 1
 }
 
-function canEmptySquaresPlaceChess(){
+function canEmptySquaresPlaceChess() {
     $(".white-hint").remove();
     $(".black-hint").remove();
     var arrayOfEmptyPosition = [];
-    gameState.forEach(function(element, index){
+    gameState.forEach(function (element, index) {
         let y = index
-        element.forEach(function(element, index){
+        element.forEach(function (element, index) {
             let x = index
             if (element == null) {
-                arrayOfEmptyPosition.push({x:x, y:y})
+                arrayOfEmptyPosition.push({ x: x, y: y })
             }
         });
     });
 
-    
+
 
     var arrayOfPossibleMovement = [];
 
@@ -261,21 +282,21 @@ function canEmptySquaresPlaceChess(){
         let y = position.y;
         var hasValidMove = false;
         directions.forEach(direction => {
-            
+
             let dx = direction[0]
             let dy = direction[1]
             let tail = getNearestTailWithCustomDirection(x, y, dx, dy)
-            if (tail != null){
+            if (tail != null) {
                 // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROCESS MOVE TAIL x: " + tail.x + ", y: " + tail.y)
                 hasValidMove = true
             }
         });
-        if (hasValidMove){
+        if (hasValidMove) {
             arrayOfPossibleMovement.push(position)
-            if (gameTurn == 0){
+            if (gameTurn == 0) {
                 getSquare(x, y).append('<div class="white-hint"></div>')
 
-            }else{
+            } else {
                 getSquare(x, y).append('<div class="black-hint"></div>')
 
             }
@@ -286,9 +307,9 @@ function canEmptySquaresPlaceChess(){
         console.log("element.x: " + element.x + ", element.y: " + element.y)
     });
 
-    if(arrayOfPossibleMovement.length == 0){
+    if (arrayOfPossibleMovement.length == 0) {
         return false
-    }else{
+    } else {
         return true
     }
 
@@ -300,13 +321,13 @@ function processMove(x, y) {
 
     var validMove = false;
 
-    
+
 
     directions.forEach(element => {
         let dx = element[0]
         let dy = element[1]
         let tail = getNearestTailWithCustomDirection(x, y, dx, dy)
-        if (tail != null){
+        if (tail != null) {
             console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROCESS MOVE TAIL x: " + tail.x + ", y: " + tail.y)
             flipEnemiesInCustomDirection(head, tail)
             validMove = true
@@ -314,7 +335,7 @@ function processMove(x, y) {
     });
 
     if (validMove) {
-        
+
         placeChessOn(x, y)
         switchGameTurn()
 
@@ -325,14 +346,14 @@ function processMove(x, y) {
         if (!hasPlacement) {
             switchGameTurn()
             let opponentHasPlacement = canEmptySquaresPlaceChess()
-            if (opponentHasPlacement){
+            if (opponentHasPlacement) {
                 //continue
                 console.log("continue")
-            }else{
+            } else {
                 //game end
                 console.log("game end")
             }
-        }else{
+        } else {
 
         }
     }
@@ -389,7 +410,7 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
     } else if (yDir > 0) {
         ySquareUntilWall = getMaxColumnIndex() - y
     }
-    
+
     console.log("xSquareUntilWall: " + xSquareUntilWall + ", ySquareUntilWall: " + ySquareUntilWall)
 
 
@@ -402,7 +423,7 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
     } else {
         squareUntilWall = Math.min(xSquareUntilWall, ySquareUntilWall);
     }
-    
+
 
     console.log("squareUntilWall: " + squareUntilWall)
 
@@ -430,9 +451,9 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
 
             for (i = x + unitXDir * 2, j = y + unitYDir * 2; squareUntilWall >= 0; shouldKeepXUnchanged ? (i = i) : (shouldIncrementX ? i++ : i--), shouldKeepYUnchanged ? (j = j) : (shouldIncrementY ? j++ : j-- , squareUntilWall--)) {
                 var squareState;
-                if (i > getMaxRowIndex() || i < 0|| j > getMaxColumnIndex() || j < 0){
+                if (i > getMaxRowIndex() || i < 0 || j > getMaxColumnIndex() || j < 0) {
                     squareState = null
-                }else{
+                } else {
                     squareState = getSquareState(i, j)
                 }
                 console.log("i: " + i + ", j: " + j + ", squareState: " + squareState)
@@ -466,7 +487,7 @@ function shouldIncrement(unitDir) {
         return true
     } else if (unitDir < 0) {
         return false
-    }else{
+    } else {
         return false
     }
 }
@@ -476,7 +497,7 @@ function operateFlipIndex(unitDir, index) {
         increment(index)
     } else if (unitDir < 0) {
         decrement(index)
-    }else{
+    } else {
         return false
     }
 }

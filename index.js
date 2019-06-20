@@ -1,12 +1,12 @@
 
 // var socket = io('http://192.168.48.37:3000/');
 
-var socket = io.connect( 'http://192.168.48.37:3000/', {
+var socket = io.connect('http://192.168.48.37:3000/', {
     reconnection: true,
     reconnectionDelay: 1000,
-    reconnectionDelayMax : 5000,
+    reconnectionDelayMax: 5000,
     reconnectionAttempts: 99999
-} );
+});
 
 
 var offlineMode = true;
@@ -46,38 +46,38 @@ function connectToSocket() {
 }
 
 function emitMove(x, y) {
-    socket.emit("emit move", {x:x, y:y})
+    socket.emit("emit move", { x: x, y: y })
 }
 
 function emit() {
-    
-        socket.emit('emit from client', null);        
+
+    socket.emit('emit from client', null);
 }
 
-function initServerEmitHandler(){
+function initServerEmitHandler() {
 
-    socket.on( 'connect', function () {
-        console.log( 'connected to server' );
+    socket.on('connect', function () {
+        console.log('connected to server');
         $("#connection-status").text("connected to server")
-    } );
-    
-    socket.on( 'disconnect', function () {
-        console.log( 'disconnected to server' );
+    });
+
+    socket.on('disconnect', function () {
+        console.log('disconnected to server');
         $("#connection-status").text("disconnected to server")
 
-    } );
+    });
 
-    socket.on('reconnect', function() {
-        console.log( 'reconnected to server' );
+    socket.on('reconnect', function () {
+        console.log('reconnected to server');
         $("#connection-status").text("reconnected to server")
 
-    } ); 
+    });
 
     // socket.on('emit from server', function(msg){
     //     console.log("emit from server: " + msg)
     // })
 
-    
+
 }
 
 function onload() {
@@ -130,22 +130,60 @@ function onload() {
 
     canEmptySquaresPlaceChess()
 
-    addRoomButton()
+    addCreateRoomButton()
+
+    addJoinRoomByIdButton()
+
+    addLeaveRoomButton()
 }
 
-function addRoomButton(){
-    var element = $('#room-button-container-3')
-    element.append('<button id="enter-room">Enter Room</button>')
+function enterOfflineMode() {
 
-    var button = $('#enter-room')
-    button.click(function(event){
+}
+
+function enterOnlineMode() {
+
+}
+
+function addLeaveRoomButton() {
+    var element = $('#room-button-container-3')
+    element.append('<button id="leave-room">Leave Room</button>')
+}
+
+function addJoinRoomByIdButton() {
+    var element = $('#room-button-container-3')
+    element.append('<button id="join-room">Join Room</button>')
+
+    var button = $('#join-room')
+    button.click(function (event) {
+        var roomId = prompt("Insert Room Id")
+        var string = JSON.stringify(roomId);
+        console.log("string: " + string)
+        if (roomId != null) {
+            emitFromJoinRoomButton(roomId)
+        }
+    })
+}
+
+function emitFromJoinRoomButton(roomId) {
+    socket.emit("join room by id", roomId, function (msg) {
+        alert(msg)
+    })
+}
+
+function addCreateRoomButton() {
+    var element = $('#room-button-container-3')
+    element.append('<button id="create-room">Create Room</button>')
+
+    var button = $('#create-room')
+    button.click(function (event) {
         // console.log("button clicked")
-        emitFromButton1();
+        emitFromOpenRoomButton();
     });
 }
 
-function emitFromButton1(){
-    socket.emit("button 1", "button 1 clicked", function(msg){
+function emitFromOpenRoomButton() {
+    socket.emit("create room", null, function (msg) {
         alert(msg);
     })
 }

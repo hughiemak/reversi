@@ -11,6 +11,8 @@ var socket = io.connect('http://192.168.48.37:3000/', {
 
 var offlineMode = true;
 
+var activeRoomId;
+
 var chessColor = 0;
 
 var gameState =
@@ -135,19 +137,51 @@ function onload() {
     addJoinRoomByIdButton()
 
     addLeaveRoomButton()
+
+    
 }
 
-function enterOfflineMode() {
-
+function enterRoom(roomId){
+    activeRoomId = roomId
+    $("#create-room").prop("disabled", true)
+    $('#join-room').prop("disabled", true)
+    $('#leave-room').prop("disabled", false)
 }
 
-function enterOnlineMode() {
-
+function leaveRoom(){
+    activeRoomId = null
+    $("#create-room").prop("disabled", false)
+    $('#join-room').prop("disabled", false)
+    $('#leave-room').prop("disabled", true)
 }
+
+// function enterOfflineMode() {
+
+// }
+
+// function enterOnlineMode() {
+
+// }
 
 function addLeaveRoomButton() {
     var element = $('#room-button-container-3')
     element.append('<button id="leave-room">Leave Room</button>')
+
+    var button = $('#leave-room')
+    button.click(function(event){
+        
+        if (activeRoomId != null) {
+            emitFromLeaveRoomButton(activeRoomId)
+        }
+    })
+    
+}
+
+function emitFromLeaveRoomButton(roomId){
+    socket.emit("leave room by id", roomId, function(msg){
+        alert(msg)
+        leaveRoom()
+    })
 }
 
 function addJoinRoomByIdButton() {
@@ -157,8 +191,8 @@ function addJoinRoomByIdButton() {
     var button = $('#join-room')
     button.click(function (event) {
         var roomId = prompt("Insert Room Id")
-        var string = JSON.stringify(roomId);
-        console.log("string: " + string)
+        // var string = JSON.stringify(roomId);
+        // console.log("string: " + string)
         if (roomId != null) {
             emitFromJoinRoomButton(roomId)
         }
@@ -168,6 +202,7 @@ function addJoinRoomByIdButton() {
 function emitFromJoinRoomButton(roomId) {
     socket.emit("join room by id", roomId, function (msg) {
         alert(msg)
+        enterRoom(roomId)
     })
 }
 
@@ -185,6 +220,7 @@ function addCreateRoomButton() {
 function emitFromOpenRoomButton() {
     socket.emit("create room", null, function (msg) {
         alert(msg);
+        enterRoom(roomId)
     })
 }
 

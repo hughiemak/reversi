@@ -6,13 +6,14 @@
 // var socket = io('http://localhost:3000/');
 
 
-// var socket = io.connect('http://138.19.113.68:3000/', {
-//     reconnection: true,
-//     reconnectionDelay: 1000,
-//     reconnectionDelayMax: 5000,
-//     reconnectionAttempts: 99999
-// });
+var socket = io.connect('http://localhost:3000/', {
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 99999
+});
 
+var isHost;
 
 var offlineMode = true;
 
@@ -89,7 +90,7 @@ function initServerEmitHandler() {
 
 function onload() {
 
-    // initServerEmitHandler()
+    initServerEmitHandler()
 
     var boardContainer = $(".board-container")
     boardContainer.hide();
@@ -137,17 +138,18 @@ function onload() {
 
     canEmptySquaresPlaceChess()
 
-    // addCreateRoomButton()
+    addCreateRoomButton()
 
-    // addJoinRoomByIdButton()
+    addJoinRoomByIdButton()
 
-    // addLeaveRoomButton()
-    // leaveRoom()
+    addLeaveRoomButton()
+    leaveRoom()
     
 }
 
-function enterRoom(roomId){
+function enterRoom(roomId, isHost){
     console.log("enterRoom")
+    this.isHost = isHost
     activeRoomId = roomId
     $("#create-room").prop("disabled", true)
     $('#join-room').prop("disabled", true)
@@ -207,9 +209,14 @@ function addJoinRoomByIdButton() {
 }
 
 function emitFromJoinRoomButton(roomId) {
-    socket.emit("join room by id", roomId, function (roomId) {
-        alert(roomId)
-        enterRoom(roomId)
+    socket.emit("join room by id", roomId, function (response) {
+        // alert(response)
+        if (response.joinable){
+            enterRoom(response.roomId, response.isHost)
+        }else{
+            console.log("Cannot join room: " + response.unjoinableReason)
+        }
+        
     })
 }
 
@@ -225,9 +232,9 @@ function addCreateRoomButton() {
 }
 
 function emitFromOpenRoomButton() {
-    socket.emit("create room", null, function (roomId) {
-        alert(roomId);
-        enterRoom(roomId)
+    socket.emit("create room", null, function (response) {
+        alert("Created room: " + response.roomId);
+        enterRoom(response.roomId, response.isHost)
     })
 }
 
@@ -451,7 +458,7 @@ function canEmptySquaresPlaceChess() {
 
 function processMove(x, y) {
 
-    // emitMove(x, y)
+    emitMove(x, y)
 
     var head = { x: x, y: y }
 

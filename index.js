@@ -1,7 +1,12 @@
 
 // var socket = io('http://192.168.48.37:3000/');
+//192.168.48.37:3000/
+//138.19.113.68
 
-// var socket = io.connect('http://192.168.48.37:3000/', {
+// var socket = io('http://localhost:3000/');
+
+
+// var socket = io.connect('http://138.19.113.68:3000/', {
 //     reconnection: true,
 //     reconnectionDelay: 1000,
 //     reconnectionDelayMax: 5000,
@@ -132,12 +137,12 @@ function onload() {
 
     canEmptySquaresPlaceChess()
 
-    addCreateRoomButton()
+    // addCreateRoomButton()
 
-    addJoinRoomByIdButton()
+    // addJoinRoomByIdButton()
 
-    addLeaveRoomButton()
-    leaveRoom()
+    // addLeaveRoomButton()
+    // leaveRoom()
     
 }
 
@@ -446,7 +451,7 @@ function canEmptySquaresPlaceChess() {
 
 function processMove(x, y) {
 
-    emitMove(x, y)
+    // emitMove(x, y)
 
     var head = { x: x, y: y }
 

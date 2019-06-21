@@ -84,7 +84,7 @@ function initServerEmitHandler() {
 
 function onload() {
 
-    initServerEmitHandler()
+    // initServerEmitHandler()
 
     var boardContainer = $(".board-container")
     boardContainer.hide();

@@ -1,12 +1,12 @@
 
 // var socket = io('http://192.168.48.37:3000/');
 
-var socket = io.connect('http://192.168.48.37:3000/', {
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    reconnectionAttempts: 99999
-});
+// var socket = io.connect('http://192.168.48.37:3000/', {
+//     reconnection: true,
+//     reconnectionDelay: 1000,
+//     reconnectionDelayMax: 5000,
+//     reconnectionAttempts: 99999
+// });
 
 
 var offlineMode = true;
@@ -137,11 +137,12 @@ function onload() {
     addJoinRoomByIdButton()
 
     addLeaveRoomButton()
-
+    leaveRoom()
     
 }
 
 function enterRoom(roomId){
+    console.log("enterRoom")
     activeRoomId = roomId
     $("#create-room").prop("disabled", true)
     $('#join-room').prop("disabled", true)
@@ -149,6 +150,7 @@ function enterRoom(roomId){
 }
 
 function leaveRoom(){
+    console.log("leaveRoom")
     activeRoomId = null
     $("#create-room").prop("disabled", false)
     $('#join-room').prop("disabled", false)
@@ -200,8 +202,8 @@ function addJoinRoomByIdButton() {
 }
 
 function emitFromJoinRoomButton(roomId) {
-    socket.emit("join room by id", roomId, function (msg) {
-        alert(msg)
+    socket.emit("join room by id", roomId, function (roomId) {
+        alert(roomId)
         enterRoom(roomId)
     })
 }
@@ -218,8 +220,8 @@ function addCreateRoomButton() {
 }
 
 function emitFromOpenRoomButton() {
-    socket.emit("create room", null, function (msg) {
-        alert(msg);
+    socket.emit("create room", null, function (roomId) {
+        alert(roomId);
         enterRoom(roomId)
     })
 }

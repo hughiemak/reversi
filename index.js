@@ -1,37 +1,63 @@
-
+// var util = require('util');
 // var socket = io('http://192.168.48.37:3000/');
 //192.168.48.37:3000/
 //138.19.113.68
 
 // var socket = io('http://localhost:3000/');
+const GameModeType = {
+    offline: "offline",
+    lobby: "lobby",
+    room: "room"
+}
 
+var socket
 
-var socket = io.connect('http://localhost:3000/', {
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    reconnectionAttempts: 99999
-});
+try {
+    socket = io.connect('http://localhost:3000/', {
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 99999
+    });
+    gameMode = GameModeType.lobby
+} catch (error) {
+    alert("Fail to initialize socket io. Game will enter offline mode.")
+    gameMode = GameModeType.offline;
+}
+
+var gameMode;
 
 var isHost;
 
-var offlineMode = true;
+// var offlineMode;
 
 var activeRoomId;
 
-var chessColor = 0;
+var enoughPlayer;
 
-var gameState =
-    [
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-    ];
+// var chessColor = 0;
+
+// var gameDefaultState = [
+//     [null, null, null, null, null, null, null, null],
+//     [null, null, null, null, null, null, null, null],
+//     [null, null, null, null, null, null, null, null],
+//     [null, null, null, null, null, null, null, null],
+//     [null, null, null, null, null, null, null, null],
+//     [null, null, null, null, null, null, null, null],
+//     [null, null, null, null, null, null, null, null],
+//     [null, null, null, null, null, null, null, null],
+// ];
+
+var gameState = [
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+];
 
 var gameTurn = 0;
 
@@ -54,7 +80,14 @@ function connectToSocket() {
 }
 
 function emitMove(x, y) {
-    socket.emit("emit move", { x: x, y: y })
+
+    if(gameMode == GameModeType.room /*&& isYourTurn()*/){
+        console.log("emitting move to server")
+
+        socket.emit("emit move", { x: x, y: y }, activeRoomId, socket.id)
+    }
+
+    
 }
 
 function emit() {
@@ -63,6 +96,8 @@ function emit() {
 }
 
 function initServerEmitHandler() {
+
+    
 
     socket.on('connect', function () {
         console.log('connected to server');
@@ -81,16 +116,33 @@ function initServerEmitHandler() {
 
     });
 
-    // socket.on('emit from server', function(msg){
-    //     console.log("emit from server: " + msg)
-    // })
+    socket.on('emit move from server', function(move){
+        console.log(JSON.stringify(move));
+
+        let x = move.x;
+        let y = move.y;
+
+        processMove(x, y)
+
+    })
+
+    socket.on('room full msg from server', function(socketIds){
+        alert("room full msg from server: " + JSON.stringify(socketIds))
+        this.enoughPlayer = true;
+
+
+
+    })
+
+    socket.on('emit from server', function(msg){
+        // alert("yoyo")
+        console.log(msg)
+    })
 
 
 }
 
 function onload() {
-
-    initServerEmitHandler()
 
     var boardContainer = $(".board-container")
     boardContainer.hide();
@@ -105,68 +157,143 @@ function onload() {
             square.data("position", { x: x, y: y })
 
             square.click(function (event) {
-                console.log("DEBUG")
+
+                console.log("isYourTurn(): " + isYourTurn())
+                if (!isYourTurn() || (gameMode == GameModeType.room && !enoughPlayer)){
+                    //disable click
+                    return
+                }
+                // console.log("DEBUG")
                 console.log("gameTurn: " + gameTurn)
                 var element = $("#" + event.currentTarget.id)
                 console.log("x: " + element.data("position").x + ", y: " + element.data("position").y)
                 var x = element.data("position").x
                 var y = element.data("position").y
 
-                // console.log("getNearestSouthTail(x, y): " + getNearestTailWithCustomDirection(x, y, 0, -1))
-
                 if (getSquareState(x, y) == null) {
+
+                    emitMove(x, y)
                     processMove(x, y)
 
                 }
-
-                // if (getNearestTailWithCustomDirection(x, y, 0, -1) != null) {
-                //     // flipSouthWestEnemies({ x: x, y: y }, getNearestSouthWestTail(x, y))
-                //     flipEnemiesInCustomDirection({ x: x, y: y }, getNearestTailWithCustomDirection(x, y, 0, -1))
-                // }
-
-                //if chess has not been placed
-                // if (canPlaceChess(x,y)){
-                // placeChessOn(x, y)
-                // switchGameTurn()
-                // }
 
             })
         }
     }
 
-    initGameState()
-
-    canEmptySquaresPlaceChess()
+    
 
     addCreateRoomButton()
 
     addJoinRoomByIdButton()
 
     addLeaveRoomButton()
-    leaveRoom()
+
+    // leaveRoom()
+
+    if (gameMode == GameModeType.offline) {
+        enterOfflineMode();
+    }else{
+        enterLobby();
+        initServerEmitHandler()
+    }
+
+    // initGameState()
+
+    // canEmptySquaresPlaceChess()
+
     
+
 }
 
-function enterRoom(roomId, isHost){
-    console.log("enterRoom")
+function resetGameState(){
+    gameTurn = 0;
+    gameState = [
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+    ];
+    removeAllChess()
+    $(".white-hint").remove();
+    $(".black-hint").remove();
+
+}
+
+
+function isYourTurn(){
+    if (gameMode == GameModeType.offline || gameMode == GameModeType.lobby) {
+        return true
+    }else{
+        if (isHost) {
+            
+            if (gameTurn == 0){
+                //0 is your turn
+                return true
+            }else{
+                //1 is oppo's turn
+                return false
+            }
+            
+        }else{
+            if (gameTurn == 1){
+                //1 is your turn
+                return true
+            }else{
+                //0 is oppo's turn
+                return false
+            }
+        }
+    }
+}
+
+function enterRoom(roomId, isHost) {
+    console.log("Enter Room")
     this.isHost = isHost
+    console.log("this.isHost: " + this.isHost)
     activeRoomId = roomId
     $("#create-room").prop("disabled", true)
     $('#join-room').prop("disabled", true)
     $('#leave-room').prop("disabled", false)
+    gameMode = GameModeType.room
+
+    initGameState()
+
+    canEmptySquaresPlaceChess()
 }
 
-function leaveRoom(){
-    console.log("leaveRoom")
+function enterLobby() {
+
+    console.log("Enter Lobby")
+
+    enoughPlayer = null;
     activeRoomId = null
     $("#create-room").prop("disabled", false)
     $('#join-room').prop("disabled", false)
     $('#leave-room').prop("disabled", true)
+    gameMode = GameModeType.lobby
+
+    initGameState()
+
+    canEmptySquaresPlaceChess()
+
 }
 
-// function enterOfflineMode() {
+function enterOfflineMode() {
+    $("#create-room").prop("disabled", true)
+    $('#join-room').prop("disabled", true)
+    $('#leave-room').prop("disabled", true)
+    gameMode = GameModeType.offline
 
-// }
+    initGameState()
+
+    canEmptySquaresPlaceChess()
+
+}
 
 // function enterOnlineMode() {
 
@@ -177,19 +304,19 @@ function addLeaveRoomButton() {
     element.append('<button id="leave-room">Leave Room</button>')
 
     var button = $('#leave-room')
-    button.click(function(event){
-        
+    button.click(function (event) {
+
         if (activeRoomId != null) {
             emitFromLeaveRoomButton(activeRoomId)
         }
     })
-    
+
 }
 
-function emitFromLeaveRoomButton(roomId){
-    socket.emit("leave room by id", roomId, function(msg){
+function emitFromLeaveRoomButton(roomId) {
+    socket.emit("leave room by id", roomId, function (msg) {
         alert(msg)
-        leaveRoom()
+        enterLobby()
     })
 }
 
@@ -211,12 +338,12 @@ function addJoinRoomByIdButton() {
 function emitFromJoinRoomButton(roomId) {
     socket.emit("join room by id", roomId, function (response) {
         // alert(response)
-        if (response.joinable){
+        if (response.joinable) {
             enterRoom(response.roomId, response.isHost)
-        }else{
+        } else {
             console.log("Cannot join room: " + response.unjoinableReason)
         }
-        
+
     })
 }
 
@@ -234,6 +361,7 @@ function addCreateRoomButton() {
 function emitFromOpenRoomButton() {
     socket.emit("create room", null, function (response) {
         alert("Created room: " + response.roomId);
+        // console.log("Created room response:"  + util.inspect(response))
         enterRoom(response.roomId, response.isHost)
     })
 }
@@ -265,6 +393,7 @@ function displayNoOfWhite() {
     var text;
 
     text = noOfWhite
+    
     if (gameTurn == 0) {
         $(".indicator-container").empty()
         $(".indicator-container").append('<div class="white-indicator"></div>')
@@ -300,6 +429,9 @@ function switchGameTurn() {
 }
 
 function initGameState() {
+
+    resetGameState()
+
     //33, 44 black
     placeChessOn(3, 4)
     switchGameTurn()
@@ -311,6 +443,7 @@ function initGameState() {
     placeChessOn(4, 4)
     switchGameTurn()
 
+    console.log("isYourTurn(): " + isYourTurn())
 }
 
 function renderSqaure(x, y) {
@@ -323,7 +456,28 @@ function getSquare(x, y) {
     return element
 }
 
+function removeAllChess(){
+
+    console.log("removing all chess")
+
+    $('.whiteChess').remove();
+    $('.blackChess').remove();
+
+    
+    // gameState.forEach((row, y) => {
+    //     row.forEach((element, x) => {
+    //         removeChessOn(x, y)
+    //     });
+    // });
+}
+
+function removeChessOn(x, y){
+    var element = getSquare(x, y)
+    element.empty();
+}
+
 function placeChessOn(x, y) {
+    // console.log("Placing chess on x: " + x + " y: " + y)
     if (gameTurn == 0) {
         placeWhiteChessOn(x, y)
     } else {
@@ -337,7 +491,7 @@ function placeWhiteChessOn(x, y) {
     element.append('<div class="whiteChess"></div>')
     // square.append('<div class="chess"></div>')
     setSqaureStateWhite(x, y)
-    console.log("gameState: " + gameState);
+    // console.log("gameState: " + gameState);
     // element.unbind();
     // switchGameTurn()
     // updateChessCount()
@@ -349,7 +503,7 @@ function placeBlackChessOn(x, y) {
     element.append('<div class="blackChess"></div>')
     // square.append('<div class="chess"></div>')
     setSqaureStateBlack(x, y)
-    console.log("gameState: " + gameState);
+    // console.log("gameState: " + gameState);
     // element.unbind();
     // switchGameTurn()
     // updateChessCount()
@@ -372,7 +526,7 @@ function updateChessCount() {
     noOfBlack = blackCount;
     noOfWhite = whiteCount;
 
-    console.log("noOfBlack: " + noOfBlack + ", noOfWhite: " + noOfWhite)
+    // console.log("noOfBlack: " + noOfBlack + ", noOfWhite: " + noOfWhite)
     displayChessScores()
 }
 
@@ -401,8 +555,14 @@ function getMaxColumnIndex() {
 }
 
 function canEmptySquaresPlaceChess() {
+
+    
+
     $(".white-hint").remove();
     $(".black-hint").remove();
+
+    // console.log("gameState: " + gameState)
+
     var arrayOfEmptyPosition = [];
     gameState.forEach(function (element, index) {
         let y = index
@@ -434,18 +594,22 @@ function canEmptySquaresPlaceChess() {
         });
         if (hasValidMove) {
             arrayOfPossibleMovement.push(position)
-            if (gameTurn == 0) {
-                getSquare(x, y).append('<div class="white-hint"></div>')
-
-            } else {
-                getSquare(x, y).append('<div class="black-hint"></div>')
-
+            
+            if(isYourTurn()){
+                if (gameTurn == 0) {
+                    getSquare(x, y).append('<div class="white-hint"></div>')
+    
+                } else {
+                    getSquare(x, y).append('<div class="black-hint"></div>')
+    
+                }
             }
+            
         }
     });
 
     arrayOfPossibleMovement.forEach(element => {
-        console.log("element.x: " + element.x + ", element.y: " + element.y)
+        // console.log("element.x: " + element.x + ", element.y: " + element.y)
     });
 
     if (arrayOfPossibleMovement.length == 0) {
@@ -458,8 +622,8 @@ function canEmptySquaresPlaceChess() {
 
 function processMove(x, y) {
 
-    emitMove(x, y)
-
+    console.log("processMove")
+    
     var head = { x: x, y: y }
 
     var validMove = false;
@@ -471,7 +635,7 @@ function processMove(x, y) {
         let dy = element[1]
         let tail = getNearestTailWithCustomDirection(x, y, dx, dy)
         if (tail != null) {
-            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROCESS MOVE TAIL x: " + tail.x + ", y: " + tail.y)
+            // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROCESS MOVE TAIL x: " + tail.x + ", y: " + tail.y)
             flipEnemiesInCustomDirection(head, tail)
             validMove = true
         }
@@ -479,19 +643,27 @@ function processMove(x, y) {
 
     if (validMove) {
 
+        // if(gameMode == GameModeType.room && isYourTurn()){
+        //     console.log("emitMove x: " + x + " y: "+ y)
+        //     // console.log
+        //     emitMove(x, y)
+        // }
+
         placeChessOn(x, y)
         switchGameTurn()
 
+        
+
         let hasPlacement = canEmptySquaresPlaceChess()
 
-        console.log("hasPlacement: " + hasPlacement)
+        // console.log("hasPlacement: " + hasPlacement)
 
         if (!hasPlacement) {
             switchGameTurn()
             let opponentHasPlacement = canEmptySquaresPlaceChess()
             if (opponentHasPlacement) {
                 //continue
-                console.log("continue")
+                // console.log("continue")
             } else {
                 //game end
                 console.log("game end")
@@ -500,6 +672,8 @@ function processMove(x, y) {
 
         }
     }
+
+    
 
     // let northTail = getNearestNorthTail(x, y);
     // if (northTail != null){
@@ -534,7 +708,7 @@ function processMove(x, y) {
 }
 
 function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
-    console.log("x: " + x + " y: " + y + " xDir: " + xDir + " yDir: " + yDir)
+    // console.log("x: " + x + " y: " + y + " xDir: " + xDir + " yDir: " + yDir)
     var tail = null
     var xSquareUntilWall;
     var ySquareUntilWall;
@@ -554,7 +728,7 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
         ySquareUntilWall = getMaxColumnIndex() - y
     }
 
-    console.log("xSquareUntilWall: " + xSquareUntilWall + ", ySquareUntilWall: " + ySquareUntilWall)
+    // console.log("xSquareUntilWall: " + xSquareUntilWall + ", ySquareUntilWall: " + ySquareUntilWall)
 
 
     var squareUntilWall;
@@ -568,17 +742,17 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
     }
 
 
-    console.log("squareUntilWall: " + squareUntilWall)
+    // console.log("squareUntilWall: " + squareUntilWall)
 
     if (squareUntilWall == 0) {
-        console.log("squareUntilWall == 0")
+        // console.log("squareUntilWall == 0")
         tail = null
     } else {
-        console.log("x + unitXDir: " + x + unitXDir + ", y + unitYDir: " + y + unitYDir)
+        // console.log("x + unitXDir: " + x + unitXDir + ", y + unitYDir: " + y + unitYDir)
         var nextSquareState = getSquareState(x + unitXDir, y + unitYDir);
 
         if (nextSquareState == null || nextSquareState == gameTurn) {
-            console.log("nextSquareState == null || nextSquareState == gameTurn")
+            // console.log("nextSquareState == null || nextSquareState == gameTurn")
             tail = null
         } else {
             var i, j;
@@ -589,8 +763,8 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
             let shouldIncrementX = shouldIncrement(unitXDir)
             let shouldIncrementY = shouldIncrement(unitYDir)
 
-            console.log("shouldIncrementX: " + shouldIncrementX)
-            console.log("shouldIncrementY: " + shouldIncrementY)
+            // console.log("shouldIncrementX: " + shouldIncrementX)
+            // console.log("shouldIncrementY: " + shouldIncrementY)
 
             for (i = x + unitXDir * 2, j = y + unitYDir * 2; squareUntilWall >= 0; shouldKeepXUnchanged ? (i = i) : (shouldIncrementX ? i++ : i--), shouldKeepYUnchanged ? (j = j) : (shouldIncrementY ? j++ : j-- , squareUntilWall--)) {
                 var squareState;
@@ -599,14 +773,14 @@ function getNearestTailWithCustomDirection(x, y, xDir, yDir) {
                 } else {
                     squareState = getSquareState(i, j)
                 }
-                console.log("i: " + i + ", j: " + j + ", squareState: " + squareState)
+                // console.log("i: " + i + ", j: " + j + ", squareState: " + squareState)
                 if (squareState == gameTurn) {
                     //ally
-                    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Found Ally!")
+                    // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Found Ally!")
                     tail = { x: i, y: j }
                     squareUntilWall = -1
                 } else if (squareState == null) {
-                    console.log("Empty Tail!")
+                    // console.log("Empty Tail!")
                     //empty
                     tail = null
                     squareUntilWall = -1

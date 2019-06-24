@@ -13,7 +13,9 @@ const GameModeType = {
 var socket
 
 try {
-    socket = io.connect('http://reversi-server-reversi-server.apps.us-west-2.online-starter.openshift.com', {
+    // socket = io.connect('http://reversi-server-reversi-server.apps.us-west-2.online-starter.openshift.com', {
+    socket = io.connect('http://localhost:3000', {
+
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
@@ -32,8 +34,6 @@ var isHost;
 // var offlineMode;
 
 var activeRoomId;
-
-var enoughPlayer;
 
 // var chessColor = 0;
 
@@ -60,6 +60,7 @@ var gameState = [
 ];
 
 var gameTurn = 0;
+var enoughPlayer = null;
 
 var noOfWhite;
 var noOfBlack;
@@ -127,9 +128,10 @@ function initServerEmitHandler() {
     })
 
     socket.on('room full msg from server', function(socketIds){
-        alert("room full msg from server: " + JSON.stringify(socketIds))
-        this.enoughPlayer = true;
-
+        alert("A player enter your room. Let's go!")
+        setEnoughPlayer(true)
+        // this.enoughPlayer = true;
+        // console.log("enoughPlayer: " + this.enoughPlayer)
 
 
     })
@@ -159,6 +161,8 @@ function onload() {
             square.click(function (event) {
 
                 console.log("isYourTurn(): " + isYourTurn())
+                console.log("gameMode: " + gameMode + ", enoughPlayer: " + enoughPlayer)
+                console.log("activeRoomId: " + activeRoomId)
                 if (!isYourTurn() || (gameMode == GameModeType.room && !enoughPlayer)){
                     //disable click
                     return
@@ -204,6 +208,10 @@ function onload() {
 
     
 
+}
+
+function setEnoughPlayer(value){
+    enoughPlayer = value
 }
 
 function resetGameState(){
@@ -267,10 +275,14 @@ function enterRoom(roomId, isHost) {
 }
 
 function enterLobby() {
-
+    // console.log("enoughPlayer: " + this.enoughPlayer)
+    
     console.log("Enter Lobby")
+    // enoughPlayer = false;
 
     enoughPlayer = null;
+    // console.log("enoughPlayer: " + this.enoughPlayer)
+
     activeRoomId = null
     $("#create-room").prop("disabled", false)
     $('#join-room').prop("disabled", false)
@@ -361,7 +373,9 @@ function addCreateRoomButton() {
 function emitFromOpenRoomButton() {
     socket.emit("create room", null, function (response) {
         alert("Created room: " + response.roomId);
+        console.log("Created room id: " + response.roomId);
         // console.log("Created room response:"  + util.inspect(response))
+        // console.log("DEBUG enoughPlayer: " + enoughPlayer)
         enterRoom(response.roomId, response.isHost)
     })
 }

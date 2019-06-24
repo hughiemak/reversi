@@ -13,8 +13,8 @@ const GameModeType = {
 var socket
 
 try {
-    // socket = io.connect('http://reversi-server-reversi-server.apps.us-west-2.online-starter.openshift.com', {
-    socket = io.connect('http://localhost:3000', {
+    socket = io.connect('http://reversi-server-reversi-server.apps.us-west-2.online-starter.openshift.com', {
+    // socket = io.connect('http://localhost:3000', {
 
         reconnection: true,
         reconnectionDelay: 1000,

@@ -352,6 +352,7 @@ function emitFromJoinRoomButton(roomId) {
         // alert(response)
         if (response.joinable) {
             enterRoom(response.roomId, response.isHost)
+            setEnoughPlayer(true)
         } else {
             console.log("Cannot join room: " + response.unjoinableReason)
         }

@@ -112,8 +112,11 @@
     flex-direction: column;
     padding:0px;
     overflow: auto;
-    justify-content: center;
+    justify-content: space-between;
     /* padding-top: 20px; */
+    padding-bottom: 0px;
+    padding-top: 20px;
+    margin-bottom: 20px;
 }
 
 #game-container {
@@ -131,6 +134,8 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     width: 50px;
     text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .blackScore{
@@ -139,6 +144,8 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     width: 50px;
     text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 #version{
@@ -164,6 +171,7 @@
     display: flex;
     justify-content: center;
     align-items: center; 
+    margin-bottom: 10px;
 }
 
 .white-indicator{
@@ -203,3 +211,10 @@
 #room-button-container-3{
     text-align: center;
 }
+
+.score-container{
+    display:flex;
+    justify-content: center;
+    flex-direction: column;
+}
+

@@ -688,7 +688,24 @@ function processMove(x, y) {
         }
     }
 
-    
+    function checkWinner(){
+        if (noOfWhite > noOfBlack) {
+            if (isHost) {
+                //win
+            }else{
+                //lose
+            }
+        }else if (noOfWhite < noOfBlack){
+            if (isHost){
+                //lose
+            }else{
+                //win
+            }
+        }else if (noOfWhite == noOfBlack){
+            // tie
+        }
+
+    }
 
     // let northTail = getNearestNorthTail(x, y);
     // if (northTail != null){

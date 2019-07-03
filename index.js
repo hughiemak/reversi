@@ -1,3 +1,6 @@
+// import alerts from "/alerts.js"
+
+
 // var util = require('util');
 // var socket = io('http://192.168.48.37:3000/');
 //192.168.48.37:3000/
@@ -310,6 +313,14 @@ function enterOfflineMode() {
 // function enterOnlineMode() {
 
 // }
+
+function emitWin(win){
+    if (win) {
+        socket.emit("client emit win", true)
+    }else{
+        socket.emit("client emit win", false)
+    }
+}
 
 function addLeaveRoomButton() {
     var element = $('#room-button-container-3')
@@ -682,6 +693,8 @@ function processMove(x, y) {
             } else {
                 //game end
                 console.log("game end")
+
+                checkWinner()
             }
         } else {
 

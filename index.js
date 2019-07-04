@@ -131,8 +131,13 @@ function initServerEmitHandler() {
     })
 
     socket.on('room full msg from server', function(socketIds){
-        alert("A player enter your room. Let's go!")
+        // alert("A player enter your room. Let's go!")
+
+        addMessage("Player " + socketIds.guest + " joined your room. Let's go!")
+        addMessage("You are white.")
+
         setEnoughPlayer(true)
+
         // this.enoughPlayer = true;
         // console.log("enoughPlayer: " + this.enoughPlayer)
 
@@ -209,8 +214,51 @@ function onload() {
 
     // canEmptySquaresPlaceChess()
 
-    
+    addRegisterButton()
+    addLoginButton()
 
+    clearAllMessage()
+    addMessage("Welcome to the lobby!")
+    // addNewLineInMessage()
+    
+}
+
+function clearAllMessage(){
+    var textArea = document.getElementById("message")
+    textArea.value = ""
+}
+
+function addMessage(message){
+    var date = new Date();
+    var h = date.getHours()
+    var m = date.getMinutes()
+    var s = date.getSeconds()
+    var second;
+    if (s<10){
+        second = "0" + s.toString()
+    }else{
+        second = s.toString()
+    }
+    var timeString = "[" + h + ":" + m + ":" + second + "] "
+    console.log("timeString: " + timeString)
+
+    var textArea = document.getElementById("message")
+    var currentMsg = textArea.value
+    console.log("addMessage:" + currentMsg)
+    // var newLine = "\r\n"
+    newMessage = currentMsg + timeString + message// + newLine
+    textArea.value = newMessage
+    textArea.scrollTop = textArea.scrollHeight;
+    addNewLineInMessage()
+}
+
+function addNewLineInMessage(){
+    var textArea = document.getElementById("message")
+    var currentMsg = textArea.value
+    var newLine = "\r\n"
+    newMessage = currentMsg + newLine
+    textArea.value = newMessage
+    textArea.scrollTop = textArea.scrollHeight;
 }
 
 function setEnoughPlayer(value){
@@ -296,6 +344,8 @@ function enterLobby() {
 
     canEmptySquaresPlaceChess()
 
+    
+
 }
 
 function enterOfflineMode() {
@@ -322,13 +372,33 @@ function emitWin(win){
     }
 }
 
+function addRegisterButton(){
+    var element = $('#account-button-container-3')
+    element.append('<button id="account-register">Register</button>')
+    var button = $('#account-register')
+    button.click(function (event) {
+        
+    })
+}
+
+function addLoginButton(){
+    var element = $('#account-button-container-3')
+    element.append('<button id="account-login">Login</button>')
+    var button = $('#account-login')
+    button.click(function (event) {
+        var dialog = document.getElementById('dialog');
+        dialog.show();    
+    })
+}
+
+
 function addLeaveRoomButton() {
     var element = $('#room-button-container-3')
     element.append('<button id="leave-room">Leave Room</button>')
 
     var button = $('#leave-room')
     button.click(function (event) {
-
+        button.prop("disabled", true)
         if (activeRoomId != null) {
             emitFromLeaveRoomButton(activeRoomId)
         }
@@ -338,8 +408,13 @@ function addLeaveRoomButton() {
 
 function emitFromLeaveRoomButton(roomId) {
     socket.emit("leave room by id", roomId, function (msg) {
-        alert(msg)
+        // alert(msg)
+        addMessage("You have left room: " + roomId + ".")
+        addMessage("You are now in the lobby.")
+        // addNewLineInMessage()
         enterLobby()
+        // var button = $('#leave-room')
+        // button.prop("disabled", false)
     })
 }
 
@@ -363,9 +438,20 @@ function emitFromJoinRoomButton(roomId) {
         // alert(response)
         if (response.joinable) {
             enterRoom(response.roomId, response.isHost)
+            addMessage("You are now in room: " + response.roomId)
+            addMessage("You are black.")
             setEnoughPlayer(true)
         } else {
-            console.log("Cannot join room: " + response.unjoinableReason)
+            // console.log("Cannot join room: " + response.unjoinableReason)
+            console.log("response: " + JSON.stringify(response))
+            addMessage("Fail to join room: " + roomId + ".")
+            if (response.unjoinableReason == "full"){
+                //room full
+                addMessage("Reason: room is full.")
+            }else{
+                //room does not exist
+                addMessage("Reason: room does not exist.")
+            }
         }
 
     })
@@ -376,7 +462,11 @@ function addCreateRoomButton() {
     element.append('<button id="create-room">Create Room</button>')
 
     var button = $('#create-room')
+    // var jbutton = $('#join-room')
     button.click(function (event) {
+        button.prop("disabled", true)
+        var jbutton = $('#join-room')
+        jbutton.prop("disabled", true)
         // console.log("button clicked")
         emitFromOpenRoomButton();
     });
@@ -384,11 +474,21 @@ function addCreateRoomButton() {
 
 function emitFromOpenRoomButton() {
     socket.emit("create room", null, function (response) {
-        alert("Created room: " + response.roomId);
+        // alert("Created room: " + response.roomId);
+
+        var roomId = response.roomId
         console.log("Created room id: " + response.roomId);
+
+        addMessage("You have successfully created a room.")
+        addMessage("You are now in room: " + roomId + ".")
+        addMessage("Others can join this room using the id.")
+        // addNewLineInMessage()
         // console.log("Created room response:"  + util.inspect(response))
         // console.log("DEBUG enoughPlayer: " + enoughPlayer)
         enterRoom(response.roomId, response.isHost)
+
+        var button = $('#create-room')
+        button.prop("disabled", true)
     })
 }
 

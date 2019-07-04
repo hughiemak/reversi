@@ -345,3 +345,11 @@ button:disabled{
     flex-direction: column;
 }
 
+#input::placeholder{
+    color:#D3D3D3;
+}
+
+#input{
+    padding-left: 2px;
+    padding-right: 2px;
+}

@@ -17,7 +17,7 @@ var socket
 
 try {
     socket = io.connect('https://secured-server-reversi-server.apps.us-west-2.online-starter.openshift.com/', {
-    // socket = io.connect('http://localhost:3000', {
+        // socket = io.connect('http://localhost:3000', {
 
         reconnection: true,
         reconnectionDelay: 1000,
@@ -25,10 +25,15 @@ try {
         reconnectionAttempts: 99999
     });
     gameMode = GameModeType.lobby
+
 } catch (error) {
     alert("Fail to initialize socket io. Game will enter offline mode.")
     gameMode = GameModeType.offline;
 }
+
+var mySocketId
+
+var playerName
 
 var gameMode;
 
@@ -79,19 +84,28 @@ var directions = [
     [-1, 1]
 ]
 
+var InputStates = Object.freeze({
+    "texting": "texting",
+    "username": "username",
+    "password": "password",
+    "roomId": "roomId"
+})
+
+var inputState = InputStates.texting;
+
 function connectToSocket() {
 
 }
 
 function emitMove(x, y) {
 
-    if(gameMode == GameModeType.room /*&& isYourTurn()*/){
+    if (gameMode == GameModeType.room /*&& isYourTurn()*/) {
         console.log("emitting move to server")
 
         socket.emit("emit move", { x: x, y: y }, activeRoomId, socket.id)
     }
 
-    
+
 }
 
 function emit() {
@@ -101,11 +115,20 @@ function emit() {
 
 function initServerEmitHandler() {
 
-    
+
 
     socket.on('connect', function () {
         console.log('connected to server');
         $("#connection-status").text("connected to server")
+        mySocketId = socket.id
+        console.log("mySocketId: " + mySocketId)
+        playerName = "Player_" + mySocketId.substring(0, 4)
+
+        addMessage("Welcome to the lobby!")
+
+        setInputPlaceholder(trimmedSocketId(mySocketId))
+        // addMessage(playerName)
+
     });
 
     socket.on('disconnect', function () {
@@ -120,7 +143,7 @@ function initServerEmitHandler() {
 
     });
 
-    socket.on('emit move from server', function(move){
+    socket.on('emit move from server', function (move) {
         console.log(JSON.stringify(move));
 
         let x = move.x;
@@ -130,7 +153,7 @@ function initServerEmitHandler() {
 
     })
 
-    socket.on('room full msg from server', function(socketIds){
+    socket.on('room full msg from server', function (socketIds) {
         // alert("A player enter your room. Let's go!")
 
         addMessage("Player " + socketIds.guest + " joined your room. Let's go!")
@@ -144,7 +167,7 @@ function initServerEmitHandler() {
 
     })
 
-    socket.on('emit from server', function(msg){
+    socket.on('emit from server', function (msg) {
         // alert("yoyo")
         console.log(msg)
     })
@@ -171,7 +194,7 @@ function onload() {
                 console.log("isYourTurn(): " + isYourTurn())
                 console.log("gameMode: " + gameMode + ", enoughPlayer: " + enoughPlayer)
                 console.log("activeRoomId: " + activeRoomId)
-                if (!isYourTurn() || (gameMode == GameModeType.room && !enoughPlayer)){
+                if (!isYourTurn() || (gameMode == GameModeType.room && !enoughPlayer)) {
                     //disable click
                     return
                 }
@@ -193,7 +216,7 @@ function onload() {
         }
     }
 
-    
+
 
     addCreateRoomButton()
 
@@ -205,7 +228,7 @@ function onload() {
 
     if (gameMode == GameModeType.offline) {
         enterOfflineMode();
-    }else{
+    } else {
         enterLobby();
         initServerEmitHandler()
     }
@@ -217,38 +240,100 @@ function onload() {
     addRegisterButton()
     addLoginButton()
 
+    clearInputField()
     clearAllMessage()
-    addMessage("Welcome to the lobby!")
     // addNewLineInMessage()
+    addInputFieldEventListener()
+
+}
+
+function trimmedSocketId(socketId) {
+    return socketId.substring(0, 5)
+}
+
+function setInputPlaceholder(placeholder){
+    // var input = document.getElementById("input")
+    $("#input").attr("placeholder", placeholder)
+}
+
+function submitText(text){
     
 }
 
-function clearAllMessage(){
+function submitUsername(name){
+
+}
+
+function submitPassword(password){
+    
+}
+
+function submitRoomId(id){
+
+}
+
+function addInputFieldEventListener() {
+    var input = document.getElementById("input")
+    var value = input.value
+    input.addEventListener("keyup", function (event) {
+        if (!((input.value.isEmpty) || !(input.value))) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                addMessage(input.value)
+                clearInputField()
+
+                switch (inputState) {
+                    case InputStates.texting:
+                        submitText(value)
+                        break
+                    case InputStates.username:
+                        submitUsername(value)
+                        break
+                    case InputStates.password:
+                        submitPassword(value)
+                        break
+                    case InputStates.roomId:
+                        submitRoomId(value)
+                        break
+                }
+
+            }
+        }
+
+    })
+}
+
+function clearInputField() {
+    var input = document.getElementById("input")
+    input.value = ""
+}
+
+function clearAllMessage() {
     var textArea = document.getElementById("message")
     textArea.value = ""
 }
 
-function addMessage(message){
+function addMessage(message) {
     var date = new Date();
     var h = date.getHours()
     var hour;
-    if (h<10){
+    if (h < 10) {
         hour = "0" + h.toString()
-    }else{
+    } else {
         hour = h.toString()
     }
     var m = date.getMinutes()
     var min;
-    if (m<10){
+    if (m < 10) {
         min = "0" + m.toString()
-    }else{
+    } else {
         min = m.toString()
     }
     var s = date.getSeconds()
     var second;
-    if (s<10){
+    if (s < 10) {
         second = "0" + s.toString()
-    }else{
+    } else {
         second = s.toString()
     }
     var timeString = "[" + hour + ":" + min + ":" + second + "] "
@@ -264,7 +349,7 @@ function addMessage(message){
     addNewLineInMessage()
 }
 
-function addNewLineInMessage(){
+function addNewLineInMessage() {
     var textArea = document.getElementById("message")
     var currentMsg = textArea.value
     var newLine = "\r\n"
@@ -273,11 +358,11 @@ function addNewLineInMessage(){
     textArea.scrollTop = textArea.scrollHeight;
 }
 
-function setEnoughPlayer(value){
+function setEnoughPlayer(value) {
     enoughPlayer = value
 }
 
-function resetGameState(){
+function resetGameState() {
     gameTurn = 0;
     gameState = [
         [null, null, null, null, null, null, null, null],
@@ -296,25 +381,25 @@ function resetGameState(){
 }
 
 
-function isYourTurn(){
+function isYourTurn() {
     if (gameMode == GameModeType.offline || gameMode == GameModeType.lobby) {
         return true
-    }else{
+    } else {
         if (isHost) {
-            
-            if (gameTurn == 0){
+
+            if (gameTurn == 0) {
                 //0 is your turn
                 return true
-            }else{
+            } else {
                 //1 is oppo's turn
                 return false
             }
-            
-        }else{
-            if (gameTurn == 1){
+
+        } else {
+            if (gameTurn == 1) {
                 //1 is your turn
                 return true
-            }else{
+            } else {
                 //0 is oppo's turn
                 return false
             }
@@ -323,6 +408,7 @@ function isYourTurn(){
 }
 
 function enterRoom(roomId, isHost) {
+
     console.log("Enter Room")
     this.isHost = isHost
     console.log("this.isHost: " + this.isHost)
@@ -339,7 +425,7 @@ function enterRoom(roomId, isHost) {
 
 function enterLobby() {
     // console.log("enoughPlayer: " + this.enoughPlayer)
-    
+
     console.log("Enter Lobby")
     // enoughPlayer = false;
 
@@ -356,7 +442,7 @@ function enterLobby() {
 
     canEmptySquaresPlaceChess()
 
-    
+
 
 }
 
@@ -376,30 +462,30 @@ function enterOfflineMode() {
 
 // }
 
-function emitWin(win){
+function emitWin(win) {
     if (win) {
         socket.emit("client emit win", true)
-    }else{
+    } else {
         socket.emit("client emit win", false)
     }
 }
 
-function addRegisterButton(){
+function addRegisterButton() {
     var element = $('#account-button-container-3')
     element.append('<button id="account-register">Register</button>')
     var button = $('#account-register')
     button.click(function (event) {
-        
+
     })
 }
 
-function addLoginButton(){
+function addLoginButton() {
     var element = $('#account-button-container-3')
     element.append('<button id="account-login">Login</button>')
     var button = $('#account-login')
     button.click(function (event) {
-        var dialog = document.getElementById('dialog');
-        dialog.show();    
+        // var dialog = document.getElementById('dialog');
+        // dialog.show();
     })
 }
 
@@ -457,10 +543,10 @@ function emitFromJoinRoomButton(roomId) {
             // console.log("Cannot join room: " + response.unjoinableReason)
             console.log("response: " + JSON.stringify(response))
             addMessage("Fail to join room: " + roomId + ".")
-            if (response.unjoinableReason == "full"){
+            if (response.unjoinableReason == "full") {
                 //room full
                 addMessage("Reason: room is full.")
-            }else{
+            } else {
                 //room does not exist
                 addMessage("Reason: room does not exist.")
             }
@@ -531,7 +617,7 @@ function displayNoOfWhite() {
     var text;
 
     text = noOfWhite
-    
+
     if (gameTurn == 0) {
         $(".indicator-container").empty()
         $(".indicator-container").append('<div class="white-indicator"></div>')
@@ -594,14 +680,14 @@ function getSquare(x, y) {
     return element
 }
 
-function removeAllChess(){
+function removeAllChess() {
 
     console.log("removing all chess")
 
     $('.whiteChess').remove();
     $('.blackChess').remove();
 
-    
+
     // gameState.forEach((row, y) => {
     //     row.forEach((element, x) => {
     //         removeChessOn(x, y)
@@ -609,7 +695,7 @@ function removeAllChess(){
     // });
 }
 
-function removeChessOn(x, y){
+function removeChessOn(x, y) {
     var element = getSquare(x, y)
     element.empty();
 }
@@ -694,7 +780,7 @@ function getMaxColumnIndex() {
 
 function canEmptySquaresPlaceChess() {
 
-    
+
 
     $(".white-hint").remove();
     $(".black-hint").remove();
@@ -732,17 +818,17 @@ function canEmptySquaresPlaceChess() {
         });
         if (hasValidMove) {
             arrayOfPossibleMovement.push(position)
-            
-            if(isYourTurn()){
+
+            if (isYourTurn()) {
                 if (gameTurn == 0) {
                     getSquare(x, y).append('<div class="white-hint"></div>')
-    
+
                 } else {
                     getSquare(x, y).append('<div class="black-hint"></div>')
-    
+
                 }
             }
-            
+
         }
     });
 
@@ -761,7 +847,7 @@ function canEmptySquaresPlaceChess() {
 function processMove(x, y) {
 
     console.log("processMove")
-    
+
     var head = { x: x, y: y }
 
     var validMove = false;
@@ -790,7 +876,7 @@ function processMove(x, y) {
         placeChessOn(x, y)
         switchGameTurn()
 
-        
+
 
         let hasPlacement = canEmptySquaresPlaceChess()
 
@@ -813,20 +899,20 @@ function processMove(x, y) {
         }
     }
 
-    function checkWinner(){
+    function checkWinner() {
         if (noOfWhite > noOfBlack) {
             if (isHost) {
                 //win
-            }else{
+            } else {
                 //lose
             }
-        }else if (noOfWhite < noOfBlack){
-            if (isHost){
+        } else if (noOfWhite < noOfBlack) {
+            if (isHost) {
                 //lose
-            }else{
+            } else {
                 //win
             }
-        }else if (noOfWhite == noOfBlack){
+        } else if (noOfWhite == noOfBlack) {
             // tie
         }
 

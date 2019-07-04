@@ -86,8 +86,10 @@ var directions = [
 
 var InputStates = Object.freeze({
     "texting": "texting",
-    "username": "username",
-    "password": "password",
+    "regUsername": "regUsername",
+    "regPassword": "regPassword",
+    "logUsername": "logUsername",
+    "logPassword": "logPassword",
     "roomId": "roomId"
 })
 
@@ -251,24 +253,33 @@ function trimmedSocketId(socketId) {
     return socketId.substring(0, 5)
 }
 
-function setInputPlaceholder(placeholder){
+function setInputPlaceholder(placeholder) {
     // var input = document.getElementById("input")
     $("#input").attr("placeholder", placeholder)
 }
 
-function submitText(text){
+function submitText(text) {
+    addMessage(text)
+    inputState = InputStates.texting
+}
+
+function submitRegUsername(name) {
     
 }
 
-function submitUsername(name){
+function submitRegPassword(password) {
 
 }
 
-function submitPassword(password){
-    
+function submitRoomId(id) {
+
 }
 
-function submitRoomId(id){
+function submitLogUsername(name){
+
+}
+
+function submitLogPassword(password){
 
 }
 
@@ -286,11 +297,17 @@ function addInputFieldEventListener() {
                     case InputStates.texting:
                         submitText(value)
                         break
-                    case InputStates.username:
-                        submitUsername(value)
+                    case InputStates.regUsername:
+                        submitRegUsername(value)
                         break
-                    case InputStates.password:
-                        submitPassword(value)
+                    case InputStates.regPassword:
+                        submitRegPassword(value)
+                        break
+                    case InputStates.logUsername:
+                        submitLogUsername(value)
+                        break
+                    case InputStates.logPassword:
+                        submitLogPassword(value)
                         break
                     case InputStates.roomId:
                         submitRoomId(value)
@@ -303,10 +320,18 @@ function addInputFieldEventListener() {
     })
 }
 
-function displayRegistrationInstruction(){
-    
-    var message = "\r\nRegistration Instruction:\r\nFirst, input a username and press enter. "
+function displayRegistrationInstruction() {
+
+    var message = "\r\nRegistration Instruction:\r\n1. Enter a username(at least 5 characters) and press enter.\r\n2. Enter a password(at least 5 characters) and press enter.\r\nLog in with your username and password to record your wins/losses/draws!"
     addMessage(message)
+
+
+}
+
+function proceedOnRegistration() {
+    displayRegistrationInstruction()
+    inputState = InputStates.username
+    setInputPlaceholder("ENTER A USERNAME HERE")
 }
 
 function clearInputField() {
@@ -481,7 +506,7 @@ function addRegisterButton() {
     element.append('<button id="account-register">Register</button>')
     var button = $('#account-register')
     button.click(function (event) {
-
+        proceedOnRegistration()
     })
 }
 

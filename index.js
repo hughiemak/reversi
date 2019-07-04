@@ -231,7 +231,19 @@ function clearAllMessage(){
 function addMessage(message){
     var date = new Date();
     var h = date.getHours()
+    var hour;
+    if (h<10){
+        hour = "0" + h.toString()
+    }else{
+        hour = h.toString()
+    }
     var m = date.getMinutes()
+    var min;
+    if (m<10){
+        min = "0" + m.toString()
+    }else{
+        min = m.toString()
+    }
     var s = date.getSeconds()
     var second;
     if (s<10){
@@ -239,7 +251,7 @@ function addMessage(message){
     }else{
         second = s.toString()
     }
-    var timeString = "[" + h + ":" + m + ":" + second + "] "
+    var timeString = "[" + hour + ":" + min + ":" + second + "] "
     console.log("timeString: " + timeString)
 
     var textArea = document.getElementById("message")

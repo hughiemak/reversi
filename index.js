@@ -303,6 +303,12 @@ function addInputFieldEventListener() {
     })
 }
 
+function displayRegistrationInstruction(){
+    
+    var message = "\r\nRegistration Instruction:\r\nFirst, input a username and press enter. "
+    addMessage(message)
+}
+
 function clearInputField() {
     var input = document.getElementById("input")
     input.value = ""

@@ -280,11 +280,11 @@ function submitRoomId(id) {
 
 }
 
-function submitLogUsername(name){
+function submitLogUsername(name) {
     usernameHolder = name
 }
 
-function submitLogPassword(password){
+function submitLogPassword(password) {
 
 }
 
@@ -292,30 +292,39 @@ function addInputFieldEventListener() {
     var input = document.getElementById("input")
     var value = input.value
     input.addEventListener("keyup", function (event) {
-        if (!((input.value.isEmpty) || !(input.value))) {
+        
+
+        if (!((event.target.value.isEmpty) || !(event.target.value))) {
             if (event.keyCode === 13) {
+                console.log("event.target.value: " + event.target.value)
+
+                var inputValue = event.target.value
+
                 event.preventDefault();
-                addMessage(input.value)
+                // addMessage(input.value)
+                // var input = document.getElementById("input")
+                // var value = input.value
                 clearInputField()
+                
 
                 switch (inputState) {
                     case InputStates.texting:
-                        submitText(value)
+                        submitText(inputValue)
                         break
                     case InputStates.regUsername:
-                        submitRegUsername(value)
+                        submitRegUsername(inputValue)
                         break
                     case InputStates.regPassword:
-                        submitRegPassword(value)
+                        submitRegPassword(inputValue)
                         break
                     case InputStates.logUsername:
-                        submitLogUsername(value)
+                        submitLogUsername(inputValue)
                         break
                     case InputStates.logPassword:
-                        submitLogPassword(value)
+                        submitLogPassword(inputValue)
                         break
                     case InputStates.roomId:
-                        submitRoomId(value)
+                        submitRoomId(inputValue)
                         break
                 }
 
@@ -327,7 +336,7 @@ function addInputFieldEventListener() {
 
 function displayRegistrationInstruction() {
 
-    var message = "\r\nRegistration Instruction:\r\n1. Enter a username(at least 5 characters) and press enter.\r\n2. Enter a password(at least 5 characters) and press enter.\r\nLog in with your username and password to record your wins/losses/draws!"
+    var message = "\r\nRegistration Instruction:\r\n1. Insert a username(at least 5 characters), then press enter.\r\n2. Insert a password(at least 5 characters), then press enter.\r\nLog in with your username and password to record your wins/losses/draws!"
     addMessage(message)
 
 

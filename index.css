@@ -285,6 +285,7 @@
     /* color: #888; */
     color: red;
     -webkit-text-fill-color: red;
+    opacity: 1;
     font-family: monospace, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     border: 1px solid #d3d3d3;
 }
@@ -355,3 +356,7 @@ button:disabled{
     padding-left: 2px;
     padding-right: 2px;
 }
+
+button:focus {
+    outline: none;
+  }

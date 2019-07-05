@@ -1,6 +1,5 @@
 // import alerts from "/alerts.js"
 
-
 // var util = require('util');
 // var socket = io('http://192.168.48.37:3000/');
 //192.168.48.37:3000/
@@ -30,6 +29,8 @@ try {
     alert("Fail to initialize socket io. Game will enter offline mode.")
     gameMode = GameModeType.offline;
 }
+
+const abortKey = "q"
 
 var mySocketId
 
@@ -130,7 +131,7 @@ function initServerEmitHandler() {
 
         addMessage("Welcome to the lobby!")
 
-        setInputPlaceholder(trimmedSocketId(mySocketId))
+        // setInputPlaceholder(trimmedSocketId(mySocketId))
         // addMessage(playerName)
 
     });
@@ -161,7 +162,7 @@ function initServerEmitHandler() {
         // alert("A player enter your room. Let's go!")
 
         addMessage("Player " + socketIds.guest + " joined your room. Let's go!")
-        addMessage("You are white.")
+        addMessage("You are white. White will move first.")
 
         setEnoughPlayer(true)
 
@@ -251,13 +252,60 @@ function onload() {
 
 }
 
+function changeInputState(state) {
+    inputState = state
+}
+
+function enterTextingState() {
+    changeInputState(InputStates.texting)
+    inputPasswordModeOff()
+}
+
+function enterLNameState() {
+    changeInputState(InputStates.logUsername)
+    inputPasswordModeOff()
+}
+
+function enterLPasswordState() {
+    changeInputState(InputStates.logPassword)
+    inputPasswordModeOn()
+    setInputPlaceholder("Enter Password (at least 5 characters)")
+}
+
+function enterRNameState() {
+    setInputPlaceholder("Enter Username (at least 5 characters)")
+
+    changeInputState(InputStates.regUsername)
+    inputPasswordModeOff()
+}
+
+function enterRPasswordState() {
+    changeInputState(InputStates.regPassword)
+    //input secure
+    inputPasswordModeOn()
+    setInputPlaceholder("Enter Password (at least 5 characters)")
+}
+
+function enterRoomIdState() {
+    changeInputState(InputStates.roomId)
+    inputPasswordModeOff()
+}
+
 function trimmedSocketId(socketId) {
     return socketId.substring(0, 5)
 }
 
+function inputPasswordModeOn() {
+    $("#input").prop("type", "password")
+}
+
+function inputPasswordModeOff() {
+    $("#input").prop("type", "text")
+}
+
 function setInputPlaceholder(placeholder) {
     // var input = document.getElementById("input")
-    $("#input").attr("placeholder", placeholder)
+    $("#input").prop("placeholder", placeholder)
 }
 
 function submitText(text) {
@@ -266,14 +314,63 @@ function submitText(text) {
 }
 
 function submitRegUsername(name) {
-    usernameHolder = name
+
+    if (name.length < 5) {
+        // enterLNameState()
+        addMessage("Username must contain at least 5 characters. Please try another username:")
+        enterRNameState()
+    } else {
+        usernameHolder = name
+        addMessage(name)
+        addMessage("Enter Password: (at least 5 characters)")
+
+        enterRPasswordState()
+
+    }
+
+
 }
 
 function submitRegPassword(password) {
     var name = usernameHolder
     var password = password
 
-    //call register api
+    if (password.length < 5) {
+        addMessage("Password must contain at least 5 characters. Please try another password:")
+        enterRPasswordState()
+    } else {
+        //call register api
+        register(name, password, function (json) {
+            console.log("success")
+            console.log("json: " + JSON.stringify(json))
+
+            // var code = json.code
+            // console.log("code: " + JSON.stringify(code))
+            addMessage("Registration succeeds! You can now log in to save/see your battle results!")
+
+        }, function (json) {
+            console.log("failure")
+            console.log("json: " + JSON.stringify(json))
+
+            var code = json.code
+            console.log("code: " + JSON.stringify(code))
+
+            if (code == RegistrationErrorType.duplicatedUsername) {
+                addMessage("Registration fails! Sorry, someone has taken that username already. Please try another name:")
+                enterRNameState()
+            } else if (code == RegistrationErrorType.invalidRequestBody) {
+                addMessage("Registration fails! Invalid username or password")
+                enterTextingState()
+            }
+
+            // const message = 
+
+            //1003: Someone has taken that username
+            //1004: Invalid name/pw
+
+
+        })
+    }
 }
 
 function submitRoomId(id) {
@@ -288,11 +385,19 @@ function submitLogPassword(password) {
 
 }
 
+function changeInputUIState(state) {
+    var input = document.getElementById("input")
+    //placeholder, text color...
+    switch (state) {
+        case InputStates.texting:
+    }
+}
+
 function addInputFieldEventListener() {
     var input = document.getElementById("input")
     var value = input.value
     input.addEventListener("keyup", function (event) {
-        
+
 
         if (!((event.target.value.isEmpty) || !(event.target.value))) {
             if (event.keyCode === 13) {
@@ -305,14 +410,18 @@ function addInputFieldEventListener() {
                 // var input = document.getElementById("input")
                 // var value = input.value
                 clearInputField()
-                
+
 
                 switch (inputState) {
                     case InputStates.texting:
                         submitText(inputValue)
                         break
                     case InputStates.regUsername:
-                        submitRegUsername(inputValue)
+                        if (inputValue == abortKey) {
+                            enterTextingState()
+                        } else {
+                            submitRegUsername(inputValue)
+                        }
                         break
                     case InputStates.regPassword:
                         submitRegPassword(inputValue)
@@ -335,17 +444,15 @@ function addInputFieldEventListener() {
 }
 
 function displayRegistrationInstruction() {
+    // enterRNameState()
 
-    var message = "\r\nRegistration Instruction:\r\n1. Insert a username(at least 5 characters), then press enter.\r\n2. Insert a password(at least 5 characters), then press enter.\r\nLog in with your username and password to record your wins/losses/draws!"
+    var message = "\r\nRegistration Instruction:\r\n1. Enter username.\r\n2. Enter password.\b\r(Insert \"" + abortKey + "\" to abort registration.)\r\nUpon successful registration, you may log in to keep track of your battle results!"
     addMessage(message)
-
 
 }
 
 function proceedOnRegistration() {
-    displayRegistrationInstruction()
-    inputState = InputStates.username
-    setInputPlaceholder("ENTER A USERNAME HERE")
+
 }
 
 function clearInputField() {
@@ -520,7 +627,10 @@ function addRegisterButton() {
     element.append('<button id="account-register">Register</button>')
     var button = $('#account-register')
     button.click(function (event) {
-        proceedOnRegistration()
+        // proceedOnRegistration()
+        displayRegistrationInstruction()
+        addMessage("Please enter username: (at least 5 characters)")
+        enterRNameState()
     })
 }
 
@@ -529,8 +639,10 @@ function addLoginButton() {
     element.append('<button id="account-login">Login</button>')
     var button = $('#account-login')
     button.click(function (event) {
-        // var dialog = document.getElementById('dialog');
-        // dialog.show();
+        // inputState = InputStates.logUsername
+        // register("", "")
+        // getUserById()
+
     })
 }
 
@@ -552,8 +664,11 @@ function addLeaveRoomButton() {
 function emitFromLeaveRoomButton(roomId) {
     socket.emit("leave room by id", roomId, function (msg) {
         // alert(msg)
-        addMessage("You have left room: " + roomId + ".")
-        addMessage("You are now in the lobby.")
+        addMessage("You have left room: " + roomId + "." + " You are now in the lobby.")
+        // addMessage("You are now in the lobby.")
+
+
+
         // addNewLineInMessage()
         enterLobby()
         // var button = $('#leave-room')
@@ -581,8 +696,8 @@ function emitFromJoinRoomButton(roomId) {
         // alert(response)
         if (response.joinable) {
             enterRoom(response.roomId, response.isHost)
-            addMessage("You are now in room: " + response.roomId)
-            addMessage("You are black.")
+            addMessage("You are now in room: " + response.roomId + ".")
+            addMessage("You are black. White will move first.")
             setEnoughPlayer(true)
         } else {
             // console.log("Cannot join room: " + response.unjoinableReason)
@@ -622,9 +737,12 @@ function emitFromOpenRoomButton() {
         var roomId = response.roomId
         console.log("Created room id: " + response.roomId);
 
-        addMessage("You have successfully created a room.")
-        addMessage("You are now in room: " + roomId + ".")
-        addMessage("Others can join this room using the id.")
+        addMessage("You have successfully created a room." + " You are now in room: " + roomId + "." + " Others can join this room using the id." + " Waiting for someone to join the room...")
+        // addMessage("You are now in room: " + roomId + ".")
+        // addMessage("Others can join this room using the id.")
+        // addMessage("Waiting for someone to join the room...")
+
+
         // addNewLineInMessage()
         // console.log("Created room response:"  + util.inspect(response))
         // console.log("DEBUG enoughPlayer: " + enoughPlayer)

@@ -56,6 +56,8 @@ var activeRoomId;
 //     [null, null, null, null, null, null, null, null],
 // ];
 
+var usernameHolder;
+
 var gameState = [
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
@@ -264,11 +266,14 @@ function submitText(text) {
 }
 
 function submitRegUsername(name) {
-    
+    usernameHolder = name
 }
 
 function submitRegPassword(password) {
+    var name = usernameHolder
+    var password = password
 
+    //call register api
 }
 
 function submitRoomId(id) {
@@ -276,7 +281,7 @@ function submitRoomId(id) {
 }
 
 function submitLogUsername(name){
-
+    usernameHolder = name
 }
 
 function submitLogPassword(password){

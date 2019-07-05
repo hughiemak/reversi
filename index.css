@@ -282,7 +282,8 @@
     width:281px;
     height:100px; 
     font-size: 10px;
-    color: #888;
+    /* color: #888; */
+    color: red;
     font-family: monospace, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     border: 1px solid #d3d3d3;
 }

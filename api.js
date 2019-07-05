@@ -2,14 +2,15 @@ function test() {
     console.log("test")
 }
 
-const baseUrl = "http://127.0.0.1:4000/"
+const baseUrl = "http://127.0.0.1:4000"
 
 var apis = Object.freeze({
-    "createUser": "api/users",
+    "createUser": "/api/users",
+    "loginByUsernamePassword": "/api/auth"
 })
 
 function getFullpath(api) {
-    const fullpath = baseUrl + apis.createUser
+    const fullpath = baseUrl + api
     return fullpath
 }
 
@@ -17,7 +18,7 @@ function handleResponse(response, json, success, failure){
     const code = response.status
     // const json = await response.json()
     console.log("status code: " + code)
-    // console.log("json: " + JSON.stringify(json))
+    console.log("json: " + JSON.stringify(json))
     
     if (code==200){
         success(json)
@@ -48,6 +49,24 @@ const register = async (name, password, success, failure) => {
     // const json = await response.json();
     // handleResponse(response, json, success, failure)
     
+}
+
+const loginByUsernamePassword = async (success, failure) => {
+    const path = getFullpath(apis.loginByUsernamePassword)
+    const response = await fetch(path, {
+        method: 'POST',
+        body: JSON.stringify(
+            {"name":"djiqsdfwqf","password":"asjifiqw"}
+        ),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    }).then(function (response) {
+        response.json().then(function(data){
+            handleResponse(response, data, success, failure)
+        })
+    }).catch(error => console.log("Error: " + error))
 }
 
 const getUserById = async () => {

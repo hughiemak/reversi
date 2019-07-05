@@ -250,7 +250,22 @@ function onload() {
     // addNewLineInMessage()
     addInputFieldEventListener()
 
+    // addButtonOnTouchEndState()
+
 }
+
+function addButtonOnTouchEndState(){
+    document.querySelectorAll("button").on('touchstart', function(){
+        console.log("touchstart")
+        $(this).css("background-color", "#0000ff")
+    })
+
+    document.querySelectorAll("button").on('touchend', function(){
+        console.log("touchend")
+        $(this).css("background-color", "#fff")
+    })
+}
+
 
 function changeInputState(state) {
     inputState = state
@@ -418,6 +433,7 @@ function addInputFieldEventListener() {
                         break
                     case InputStates.regUsername:
                         if (inputValue == abortKey) {
+                            addMessage("Registration aborted.")
                             enterTextingState()
                         } else {
                             submitRegUsername(inputValue)
@@ -642,7 +658,11 @@ function addLoginButton() {
         // inputState = InputStates.logUsername
         // register("", "")
         // getUserById()
+        loginByUsernamePassword(function(json){
 
+        }, function(json){
+
+        })
     })
 }
 

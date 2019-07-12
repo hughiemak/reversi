@@ -40,6 +40,8 @@ var gameMode;
 
 var isHost;
 
+var memberToken;
+
 // var offlineMode;
 
 var activeRoomId;
@@ -244,6 +246,7 @@ function onload() {
 
     addRegisterButton()
     addLoginButton()
+    addLogoutButton()
 
     clearInputField()
     clearAllMessage()
@@ -252,6 +255,14 @@ function onload() {
 
     // addButtonOnTouchEndState()
 
+}
+
+function isLoggedIn(){
+    if (memberToken == null) {
+        return false
+    }else{
+        return true
+    }
 }
 
 function addButtonOnTouchEndState(){
@@ -273,18 +284,20 @@ function changeInputState(state) {
 
 function enterTextingState() {
     changeInputState(InputStates.texting)
+    setInputPlaceholder("")
     inputPasswordModeOff()
 }
 
 function enterLNameState() {
     changeInputState(InputStates.logUsername)
     inputPasswordModeOff()
+    setInputPlaceholder("Enter Username")
 }
 
 function enterLPasswordState() {
     changeInputState(InputStates.logPassword)
     inputPasswordModeOn()
-    setInputPlaceholder("Enter Password (at least 5 characters)")
+    setInputPlaceholder("Enter Password")
 }
 
 function enterRNameState() {
@@ -361,22 +374,29 @@ function submitRegPassword(password) {
 
             // var code = json.code
             // console.log("code: " + JSON.stringify(code))
-            addMessage("Registration succeeds! You can now log in to save/see your battle results!")
+            addMessage("Registration succeeds! You can now log in to save/view your battle results!")
 
         }, function (json) {
             console.log("failure")
             console.log("json: " + JSON.stringify(json))
 
-            var code = json.code
-            console.log("code: " + JSON.stringify(code))
-
-            if (code == RegistrationErrorType.duplicatedUsername) {
-                addMessage("Registration fails! Sorry, someone has taken that username already. Please try another name:")
-                enterRNameState()
-            } else if (code == RegistrationErrorType.invalidRequestBody) {
-                addMessage("Registration fails! Invalid username or password")
+            if (json) {
+                var code = json.code
+                console.log("code: " + JSON.stringify(code))
+    
+                if (code == RegistrationErrorType.duplicatedUsername) {
+                    addMessage("Registration fails. Sorry, someone has taken that username already. Please try another name:")
+                    enterRNameState()
+                } else if (code == RegistrationErrorType.invalidRequestBody) {
+                    addMessage("Registration fails. Invalid username or password")
+                    enterTextingState()
+                }
+            }else{
+                addMessage("Registration fails. (Unknown error)")
                 enterTextingState()
             }
+
+            
 
             // const message = 
 
@@ -393,11 +413,69 @@ function submitRoomId(id) {
 }
 
 function submitLogUsername(name) {
+    // addMessage("")
     usernameHolder = name
+    addMessage(name)
+    addMessage("Enter Password:")
+    enterLPasswordState()
+}
+
+function storeMemberToken(token){
+    memberToken = token
+}
+
+function clearMemberToken(){
+    memberToken = null
+}
+
+function logout(){
+    enableLoginBtn()
+    enableRegisterBtn()
+    disableLogoutBtn()
+    addMessage("Logged out.")
+    clearMemberToken()
 }
 
 function submitLogPassword(password) {
+    const name = usernameHolder
+    // const password = password
 
+    loginByUsernamePassword(name, password, function(json){
+        // console.log("json.userData.win: " + json.userData.win)
+
+        enableLogoutBtn()
+
+        disableLoginBtn()
+
+        disableRegisterBtn()
+
+        console.log("json.token:" + json.token)
+
+        storeMemberToken(json.token)
+
+        addMessage("\b\rLogin successful." + " Hi, " + name + "!" + "\b\rThis is your battle history:\b\rWins: " + json.userData.win + "\b\rLoss: " + json.userData.loss + "\b\rDraw: " + json.userData.draw)
+        // addMessage("This is your battle history:\b\rWins: " + json.win + "\b\rLoss: " + json.loss + "\b\rDraw: " + json.draw)
+
+    }, function(json){
+
+        if (json){
+            var code = json.code
+                console.log("code: " + JSON.stringify(code))
+    
+                if (code == LoginErrorType.incorrectNamePassword) {
+                    addMessage("Login fails. Incorrect username or password.")
+                    enterTextingState()
+                } else if (code == LoginErrorType.invalidUsernamePassword) {
+                    addMessage("Login fails. Invalid username or password.")
+                    enterTextingState()
+                }
+
+        }else{
+            addMessage("Login fails. (Unknown error)")
+            enterTextingState()
+        }
+
+    })
 }
 
 function changeInputUIState(state) {
@@ -638,6 +716,52 @@ function emitWin(win) {
     }
 }
 
+function enableLoginBtn(){
+    var button = $('#account-login')
+    button.prop("disabled", false)
+}
+
+function disableLoginBtn(){
+    var button = $('#account-login')
+    button.prop("disabled", true)
+}
+
+function enableRegisterBtn(){
+    var button = $('#account-register')
+    button.prop("disabled", false)
+}
+
+function disableRegisterBtn(){
+    var button = $('#account-register')
+    button.prop("disabled", true)
+}
+
+function disableLogoutBtn(){
+    console.log("disabling logout button")
+    var button = $('#account-logout')
+    button.prop("disabled", true)
+}
+
+function enableLogoutBtn(){
+    var button = $('#account-logout')
+    button.prop("disabled", false)
+}
+
+function addLogoutButton(){
+    var element = $('#account-button-container-3')
+    element.append('<button id="account-logout">Logout</button>')
+    var button = $('#account-logout')
+    button.click(function (event) {
+        logout()
+    })
+
+    // button.prop("disabled", true)
+    if (!isLoggedIn()){
+        // console.log("isLoggedIn(): " + isLoggedIn())
+        disableLogoutBtn()
+    }
+}
+
 function addRegisterButton() {
     var element = $('#account-button-container-3')
     element.append('<button id="account-register">Register</button>')
@@ -655,15 +779,27 @@ function addLoginButton() {
     element.append('<button id="account-login">Login</button>')
     var button = $('#account-login')
     button.click(function (event) {
+
+        displayLoginInstruction()
+
+        enterLNameState()
+
         // inputState = InputStates.logUsername
         // register("", "")
         // getUserById()
-        loginByUsernamePassword(function(json){
 
-        }, function(json){
 
-        })
+        // loginByUsernamePassword(function(json){
+
+        // }, function(json){
+
+        // })
     })
+}
+
+function displayLoginInstruction(){
+    var message = "\r\nLogin Instruction:\r\n1. Enter username.\r\n2. Enter password.\b\r(Insert \"" + abortKey + "\" to abort login.)\r\nUpon successful login, you can view your battle results!"
+    addMessage(message)
 }
 
 

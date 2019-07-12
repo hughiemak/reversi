@@ -282,9 +282,10 @@
     width:281px;
     height:100px; 
     font-size: 10px;
-    /* color: #888; */
-    color: red;
-    -webkit-text-fill-color: red;
+    color: #888;
+    /* color: red; */
+    -webkit-text-fill-color: #888;
+    /* -webkit-text-fill-color: red; */
     opacity: 1;
     font-family: monospace, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     border: 1px solid #d3d3d3;

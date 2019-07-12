@@ -51,12 +51,12 @@ const register = async (name, password, success, failure) => {
     
 }
 
-const loginByUsernamePassword = async (success, failure) => {
+const loginByUsernamePassword = async (name, password, success, failure) => {
     const path = getFullpath(apis.loginByUsernamePassword)
     const response = await fetch(path, {
         method: 'POST',
         body: JSON.stringify(
-            {"name":"djiqsdfwqf","password":"asjifiqw"}
+            {"name":name,"password":password}
         ),
         headers: {
             'Accept': 'application/json',
@@ -64,6 +64,7 @@ const loginByUsernamePassword = async (success, failure) => {
         }
     }).then(function (response) {
         response.json().then(function(data){
+            console.log("token: " + response.headers.get('x-auth-token'))
             handleResponse(response, data, success, failure)
         })
     }).catch(error => console.log("Error: " + error))

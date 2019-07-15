@@ -46,6 +46,8 @@ var memberToken;
 
 var activeRoomId;
 
+var loggedInUsername;
+
 // var chessColor = 0;
 
 // var gameDefaultState = [
@@ -160,10 +162,10 @@ function initServerEmitHandler() {
 
     })
 
-    socket.on('room full msg from server', function (socketIds) {
+    socket.on('room full msg from server', function (sockets) {
         // alert("A player enter your room. Let's go!")
 
-        addMessage("Player " + socketIds.guest + " joined your room. Let's go!")
+        addMessage(sockets.guest + " joined your room. Let's go!")
         addMessage("You are white. White will move first.")
 
         setEnoughPlayer(true)
@@ -179,7 +181,23 @@ function initServerEmitHandler() {
         console.log(msg)
     })
 
+    socket.on("broadcast room message from server", function(broadcast){
+        const sender = broadcast.sender
+        const text = broadcast.text
 
+        const displayText = sender + ": " + text
+
+        addMessage(displayText)
+    })
+
+    socket.on("broadcast lobby message from server", function(broadcast){
+        const sender = broadcast.sender
+        const text = broadcast.text
+
+        const displayText = sender + ": " + text
+
+        addMessage(displayText)
+    })
 }
 
 function onload() {
@@ -255,6 +273,35 @@ function onload() {
 
     // addButtonOnTouchEndState()
 
+}
+
+function broadcastMsg(text){
+
+    var name;
+
+    if (isLoggedIn()){
+        name = loggedInUsername
+    }else{
+        name = socket.id
+        console.log(name)
+    }
+    
+    if (isInRoom()) {
+        
+        socket.emit("broadcast message to room", {roomId: activeRoomId, text:text, sender: name})
+
+    } else{
+        socket.emit("broadcast message to lobby", {text:text, sender: name})
+
+    }
+}
+
+function isInRoom(){
+    if (!activeRoomId){
+        return false
+    }else{
+        return true
+    }
 }
 
 function isLoggedIn(){
@@ -337,7 +384,8 @@ function setInputPlaceholder(placeholder) {
 }
 
 function submitText(text) {
-    addMessage(text)
+    // addMessage(text)
+    broadcastMsg(text)
     inputState = InputStates.texting
 }
 
@@ -436,6 +484,10 @@ function logout(){
     clearMemberToken()
 }
 
+function emitSocketChangeName(name){
+    socket.emit("emit socket change name", name)
+}
+
 function submitLogPassword(password) {
     const name = usernameHolder
     // const password = password
@@ -453,8 +505,13 @@ function submitLogPassword(password) {
 
         storeMemberToken(json.token)
 
+        loggedInUsername = name
+
         addMessage("\b\rLogin successful." + " Hi, " + name + "!" + "\b\rThis is your battle history:\b\rWins: " + json.userData.win + "\b\rLoss: " + json.userData.loss + "\b\rDraw: " + json.userData.draw)
         // addMessage("This is your battle history:\b\rWins: " + json.win + "\b\rLoss: " + json.loss + "\b\rDraw: " + json.draw)
+        enterTextingState()
+
+        emitSocketChangeName(loggedInUsername)
 
     }, function(json){
 

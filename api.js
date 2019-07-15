@@ -2,7 +2,9 @@ function test() {
     console.log("test")
 }
 
-const baseUrl = "http://127.0.0.1:4000"
+// const baseUrl = "http://127.0.0.1:4000"
+
+const baseUrl = "https://cryptic-tundra-40921.herokuapp.com"
 
 var apis = Object.freeze({
     "createUser": "/api/users",

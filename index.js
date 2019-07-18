@@ -1280,6 +1280,7 @@ function processMove(x, y) {
         if (noOfWhite > noOfBlack) {
             if (isHost) {
                 //win
+                
             } else {
                 //lose
             }

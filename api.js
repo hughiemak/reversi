@@ -9,6 +9,7 @@ const baseUrl = "https://cryptic-tundra-40921.herokuapp.com"
 var apis = Object.freeze({
     "createUser": "/api/users",
     "loginByUsernamePassword": "/api/auth"
+    // "postWinByToken"
 })
 
 function getFullpath(api) {
@@ -79,5 +80,9 @@ const getUserById = async () => {
     const response = await fetch(path)
     const myJson = await response.json();
     console.log("myJson: " + JSON.stringify(myJson))
+
+}
+
+const postWinByToken = async (token, success, failure) => {
 
 }

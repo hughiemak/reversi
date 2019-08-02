@@ -491,6 +491,9 @@ function emitSocketChangeName(name){
 
 function submitLogPassword(password) {
     const name = usernameHolder
+
+    addMessage("Loading...")
+
     // const password = password
 
     loginByUsernamePassword(name, password, function(json){
@@ -805,6 +808,17 @@ function enableLogoutBtn(){
     button.prop("disabled", false)
 }
 
+function postGameResult(type){
+
+    postGameResultByToken(memberToken, type, function(json){
+
+        // console.log("json: " + JSON.stringify(json))
+
+    }, function(json){
+        // console.log("json: " + JSON.stringify(json))
+    })
+}
+
 function addLogoutButton(){
     var element = $('#account-button-container-3')
     element.append('<button id="account-logout">Logout</button>')
@@ -825,6 +839,8 @@ function addRegisterButton() {
     element.append('<button id="account-register">Register</button>')
     var button = $('#account-register')
     button.click(function (event) {
+        // postGameResult(gameResultType.win)
+
         // proceedOnRegistration()
         displayRegistrationInstruction()
         addMessage("Please enter username: (at least 5 characters)")
@@ -842,16 +858,6 @@ function addLoginButton() {
 
         enterLNameState()
 
-        // inputState = InputStates.logUsername
-        // register("", "")
-        // getUserById()
-
-
-        // loginByUsernamePassword(function(json){
-
-        // }, function(json){
-
-        // })
     })
 }
 
@@ -896,6 +902,9 @@ function addJoinRoomByIdButton() {
 
     var button = $('#join-room')
     button.click(function (event) {
+
+        // postGameResult(gameResultType.win)
+
         var roomId = prompt("Insert Room Id")
         // var string = JSON.stringify(roomId);
         // console.log("string: " + string)

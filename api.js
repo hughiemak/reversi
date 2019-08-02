@@ -2,19 +2,45 @@ function test() {
     console.log("test")
 }
 
-// const baseUrl = "http://127.0.0.1:4000"
+var gameResultType = Object.freeze({"win":"win", "loss":"loss", "draw":"draw"})
 
-const baseUrl = "https://cryptic-tundra-40921.herokuapp.com"
+const baseUrl = "http://127.0.0.1:4000"
+
+// const baseUrl = "https://cryptic-tundra-40921.herokuapp.com"
 
 var apis = Object.freeze({
     "createUser": "/api/users",
-    "loginByUsernamePassword": "/api/auth"
-    // "postWinByToken"
+    "loginByUsernamePassword": "/api/auth",
+    "postGameResultByToken":"/api/users/result/submit"
 })
 
 function getFullpath(api) {
     const fullpath = baseUrl + api
     return fullpath
+}
+
+
+const postGameResultByToken = async (token, result, success, failure) => {
+
+    const path = getFullpath(apis.postGameResultByToken)
+
+    const response = await fetch(path, {
+        method: 'POST',
+        body: JSON.stringify(
+            {
+                token:token,
+                result:result
+            }
+        ),
+        headers:{
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    }).then(function(response){
+        response.json().then(function(data){
+            handleResponse(response, data, success, failure)
+        }).catch(error => console.log("Error: " + error))
+    })
 }
 
 function handleResponse(response, json, success, failure){
@@ -80,9 +106,5 @@ const getUserById = async () => {
     const response = await fetch(path)
     const myJson = await response.json();
     console.log("myJson: " + JSON.stringify(myJson))
-
-}
-
-const postWinByToken = async (token, success, failure) => {
 
 }
